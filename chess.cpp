@@ -1506,105 +1506,6 @@ void restoreBitboards(const Position& pos) {
     enPassantSquare = pos.enPassantSquare;
 }
 
-// Evaluates the current position from White's perspective in centipawns
-int evaluatePosition() {
-    int score = 0;
-    
-    // Single pass through the board
-    for (int square = 0; square < 64; square++) {
-        // White pieces (positive scores)
-        if (getBit(whitePawns, square)) {
-            score += PAWN_VALUE + PAWN_PST[square];
-        }
-        else if (getBit(whiteKnights, square)) {
-            score += KNIGHT_VALUE + KNIGHT_PST[square];
-        }
-        else if (getBit(whiteBishops, square)) {
-            score += BISHOP_VALUE + BISHOP_PST[square];
-        }
-        else if (getBit(whiteRooks, square)) {
-            score += ROOK_VALUE + ROOK_PST[square];
-        }
-        else if (getBit(whiteQueens, square)) {
-            score += QUEEN_VALUE + QUEEN_PST[square];
-        }
-        else if (getBit(whiteKing, square)) {
-            score += KING_PST[square];  // King value not added to avoid huge scores
-        }
-        
-        // Black pieces (negative scores)
-        else if (getBit(blackPawns, square)) {
-            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
-        }
-        else if (getBit(blackKnights, square)) {
-            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
-        }
-        else if (getBit(blackBishops, square)) {
-            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
-        }
-        else if (getBit(blackRooks, square)) {
-            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
-        }
-        else if (getBit(blackQueens, square)) {
-            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
-        }
-        else if (getBit(blackKing, square)) {
-            score -= KING_PST[square ^ 56];
-        }
-    }
-    
-    return score;
-}
-
-// Local version of evaluatePosition that works with a Position struct
-int evaluatePositionLocal(const Position& pos) {
-    int score = 0;
-    
-    for (int square = 0; square < 64; square++) {
-        // White pieces (positive scores)
-        if (getBit(pos.whitePawns, square)) {
-            score += PAWN_VALUE + PAWN_PST[square];
-        }
-        else if (getBit(pos.whiteKnights, square)) {
-            score += KNIGHT_VALUE + KNIGHT_PST[square];
-        }
-        else if (getBit(pos.whiteBishops, square)) {
-            score += BISHOP_VALUE + BISHOP_PST[square];
-        }
-        else if (getBit(pos.whiteRooks, square)) {
-            score += ROOK_VALUE + ROOK_PST[square];
-        }
-        else if (getBit(pos.whiteQueens, square)) {
-            score += QUEEN_VALUE + QUEEN_PST[square];
-        }
-        else if (getBit(pos.whiteKing, square)) {
-            score += KING_PST[square];
-        }
-        
-        // Black pieces (negative scores)
-        else if (getBit(pos.blackPawns, square)) {
-            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
-        }
-        else if (getBit(pos.blackKnights, square)) {
-            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
-        }
-        else if (getBit(pos.blackBishops, square)) {
-            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
-        }
-        else if (getBit(pos.blackRooks, square)) {
-            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
-        }
-        else if (getBit(pos.blackQueens, square)) {
-            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
-        }
-        else if (getBit(pos.blackKing, square)) {
-            score -= KING_PST[square ^ 56];
-        }
-    }
-    
-    return score;
-}
-
 // Helper function to copy a Position
 Position copyPosition(const Position& pos) {
     Position newPos;
@@ -1633,7 +1534,6 @@ Position copyPosition(const Position& pos) {
     return newPos;
 }
 
-// Add this near other struct/class definitions
 class ThreadSafePosition {
     private:
         Position pos;
@@ -1856,6 +1756,105 @@ std::vector<Move> generateMovesLocal(const Position& pos, Move::Color color) {
     );
     
     return moves;
+}
+
+// Evaluates the current position from White's perspective in centipawns
+int evaluatePosition() {
+    int score = 0;
+    
+    // Single pass through the board
+    for (int square = 0; square < 64; square++) {
+        // White pieces (positive scores)
+        if (getBit(whitePawns, square)) {
+            score += PAWN_VALUE + PAWN_PST[square];
+        }
+        else if (getBit(whiteKnights, square)) {
+            score += KNIGHT_VALUE + KNIGHT_PST[square];
+        }
+        else if (getBit(whiteBishops, square)) {
+            score += BISHOP_VALUE + BISHOP_PST[square];
+        }
+        else if (getBit(whiteRooks, square)) {
+            score += ROOK_VALUE + ROOK_PST[square];
+        }
+        else if (getBit(whiteQueens, square)) {
+            score += QUEEN_VALUE + QUEEN_PST[square];
+        }
+        else if (getBit(whiteKing, square)) {
+            score += KING_PST[square];  // King value not added to avoid huge scores
+        }
+        
+        // Black pieces (negative scores)
+        else if (getBit(blackPawns, square)) {
+            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
+        }
+        else if (getBit(blackKnights, square)) {
+            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
+        }
+        else if (getBit(blackBishops, square)) {
+            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
+        }
+        else if (getBit(blackRooks, square)) {
+            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
+        }
+        else if (getBit(blackQueens, square)) {
+            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
+        }
+        else if (getBit(blackKing, square)) {
+            score -= KING_PST[square ^ 56];
+        }
+    }
+    
+    return score;
+}
+
+// Local version of evaluatePosition that works with a Position struct
+int evaluatePositionLocal(const Position& pos) {
+    int score = 0;
+    
+    for (int square = 0; square < 64; square++) {
+        // White pieces (positive scores)
+        if (getBit(pos.whitePawns, square)) {
+            score += PAWN_VALUE + PAWN_PST[square];
+        }
+        else if (getBit(pos.whiteKnights, square)) {
+            score += KNIGHT_VALUE + KNIGHT_PST[square];
+        }
+        else if (getBit(pos.whiteBishops, square)) {
+            score += BISHOP_VALUE + BISHOP_PST[square];
+        }
+        else if (getBit(pos.whiteRooks, square)) {
+            score += ROOK_VALUE + ROOK_PST[square];
+        }
+        else if (getBit(pos.whiteQueens, square)) {
+            score += QUEEN_VALUE + QUEEN_PST[square];
+        }
+        else if (getBit(pos.whiteKing, square)) {
+            score += KING_PST[square];
+        }
+        
+        // Black pieces (negative scores)
+        else if (getBit(pos.blackPawns, square)) {
+            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackKnights, square)) {
+            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackBishops, square)) {
+            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackRooks, square)) {
+            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackQueens, square)) {
+            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackKing, square)) {
+            score -= KING_PST[square ^ 56];
+        }
+    }
+    
+    return score;
 }
 
 int getPieceValue(Move::PieceType piece) {
