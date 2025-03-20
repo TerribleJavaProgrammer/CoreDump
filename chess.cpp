@@ -20,13 +20,6 @@
 #include <bitset>
 #include <unordered_map> 
 
-// Magic Bitboard structures and constants
-struct MagicEntry {
-    uint64_t mask;
-    uint64_t magic;
-    int shift;
-    std::vector<uint64_t> attacks;
-};
 
 // Initialize magic lookup tables
 std::array<MagicEntry, 64> rookTable;
@@ -115,7 +108,12 @@ struct Move {
     bool isPromotion;
     PieceType promotionPiece;
 };
-
+struct MagicEntry {
+    uint64_t mask;
+    uint64_t magic;
+    int shift;
+    std::vector<uint64_t> attacks;
+};
 struct CastlingRights {
     bool whiteKingside = true;
     bool whiteQueenside = true;
@@ -551,8 +549,6 @@ void printBitBoard(uint64_t board) {
         std::cout << std::endl;
     }
 }
-
-// Add after the printBitBoard function
 
 uint64_t generateRookMask(int square) {
     uint64_t mask = 0ULL;
