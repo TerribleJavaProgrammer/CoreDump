@@ -369,6 +369,10 @@ std::array<int, 64> bishopShifts;    // Shift amounts for bishop magic numbers
 std::vector<uint64_t> rookAttackTable;    // Lookup table for rook attacks
 std::vector<uint64_t> bishopAttackTable;  // Lookup table for bishop attacks
 
+// Thread management variables
+constexpr int MIN_DEPTH_FOR_PARALLEL = 4;  // Only parallelize deeper searches
+constexpr int MAX_THREADS = 4;  // Limit thread count to avoid overhead
+
 // Default value for en passant
 int enPassantSquare = -1;
 
@@ -1284,47 +1288,88 @@ int evaluatePosition() {
 }
 
 SearchResult negamax(int depth, int alpha, int beta, Move::Color color) {
-    // Add transposition table lookup here
-    
-    // Add quiescence search for captures
     if (depth == 0) {
         return quiescenceSearch(alpha, beta, color);
     }
     
     std::vector<Move> moves = generateMoves(color);
     if (moves.empty()) {
-        if (isInCheck(color)) return {-KING_VALUE + (KING_VALUE - depth), Move()};  // Prefer shorter mate
+        if (isInCheck(color)) return {-KING_VALUE + (KING_VALUE - depth), Move()};
         return {0, Move()};
     }
     
-    // Improve move ordering
-    sortMoves(moves);  // Consider history heuristic and killer moves
+    sortMoves(moves);
     
     SearchResult best = {-KING_VALUE * 2, moves[0]};
-    for (const Move& move : moves) {
-        // Add null move pruning here for non-pawn endings
+
+    // Use parallel search only for deeper positions to avoid overhead
+    if (depth >= MIN_DEPTH_FOR_PARALLEL && moves.size() > 1) {
+        std::vector<std::future<SearchResult>> futures;
+        std::mutex mtx;
+        int threadsUsed = 0;
         
-        Position oldPosition = saveBitboards();
-        updateBitboards(move);
-        
-        SearchResult result = negamax(depth - 1, -beta, -alpha, 
-            color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
-        int score = -result.score;
-        
-        restoreBitboards(oldPosition);
-        
-        if (score > best.score) {
-            best.score = score;
-            best.bestMove = move;
+        // Launch parallel searches for top moves
+        for (size_t i = 0; i < moves.size() && threadsUsed < MAX_THREADS; ++i) {
+            futures.push_back(std::async(std::launch::async, [&, move = moves[i], localAlpha = alpha]() {
+                Position oldPosition = saveBitboards();
+                updateBitboards(move);
+                
+                SearchResult result = negamax(depth - 1, -beta, -localAlpha,
+                    color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
+                
+                restoreBitboards(oldPosition);
+                return SearchResult{-result.score, move};
+            }));
+            threadsUsed++;
         }
-        alpha = std::max(alpha, score);
-        if (alpha >= beta) {
-            // Store killer move here
-            break;
+        
+        // Process remaining moves sequentially
+        for (size_t i = threadsUsed; i < moves.size(); ++i) {
+            Position oldPosition = saveBitboards();
+            updateBitboards(moves[i]);
+            
+            SearchResult result = negamax(depth - 1, -beta, -alpha,
+                color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
+            int score = -result.score;
+            
+            restoreBitboards(oldPosition);
+            
+            if (score > best.score) {
+                best = {score, moves[i]};
+                alpha = std::max(alpha, score);
+                if (alpha >= beta) break;
+            }
+        }
+        
+        // Collect results from parallel searches
+        for (auto& future : futures) {
+            SearchResult result = future.get();
+            if (result.score > best.score) {
+                best = result;
+                alpha = std::max(alpha, result.score);
+                if (alpha >= beta) break;
+            }
+        }
+    } else {
+        // Sequential search for shallower depths
+        for (const Move& move : moves) {
+            Position oldPosition = saveBitboards();
+            updateBitboards(move);
+            
+            SearchResult result = negamax(depth - 1, -beta, -alpha,
+                color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
+            int score = -result.score;
+            
+            restoreBitboards(oldPosition);
+            
+            if (score > best.score) {
+                best = {score, move};
+                alpha = std::max(alpha, score);
+                if (alpha >= beta) break;
+            }
         }
     }
     
-    // Store position in transposition table here
     return best;
 }
 
