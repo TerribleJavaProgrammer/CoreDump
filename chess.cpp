@@ -310,6 +310,8 @@ struct Position {
 struct SearchResult {
     int score;
     Move bestMove;
+    
+    SearchResult(int s, Move m) : score(s), bestMove(m) {}
 };
 
 // Global castling rights state
@@ -348,6 +350,14 @@ uint64_t getKnightMoves(int square);              // Gets legal knight moves
 uint64_t getKingMoves(int square);                // Gets legal king moves
 uint64_t getQueenMoves(int square, uint64_t occupied);   // Gets legal queen moves
 
+// LOCALS
+uint64_t getPawnMovesLocal(int square, Move::Color color, uint64_t occupied, const Position& pos);
+bool isSquareAttackedLocal(int square, Move::Color attackingColor, const Position& pos);
+bool isInCheckLocal(const Position& pos, Move::Color color);
+uint64_t getCastlingMovesLocal(Move::Color color, uint64_t occupied, const Position& pos);
+int evaluatePositionLocal(const Position& pos);
+std::vector<Move> generateMovesLocal(const Position& pos, Move::Color color);
+
 // **GAME STATE CHECKING**
 bool isSquareAttacked(int square, Move::Color attackingColor);  // Checks if square is under attack
 bool isInCheck(Move::Color color);                // Checks if specified color is in check
@@ -355,11 +365,9 @@ uint64_t getCastlingMoves(Move::Color color, uint64_t occupied);  // Gets legal 
 
 // **POSITION EVALUATION AND SEARCH**
 int evaluatePosition();                           // Evaluates current position in centipawns
-SearchResult negamax(int depth, int alpha, int beta, Move::Color color);  // Negamax with alpha-beta pruning
-std::vector<Move> generateMoves(Move::Color color);  // Generates all legal moves
+std::vector<Move> generateMoves(const Position& pos, Move::Color color);  // Generates all legal moves
 void sortMoves(std::vector<Move>& moves);         // Sorts moves for better pruning (MVV/LVA)
 Move findBestMove(Move::Color color, int depth);   // Finds best move using negamax search
-SearchResult quiescenceSearch(int alpha, int beta, Move::Color color); // Quiescence search for sharp positions
 
 // **ATTACK TABLE INITIALIZATION**
 std::array<int, 64> rookShifts;      // Shift amounts for rook magic numbers
@@ -369,12 +377,51 @@ std::array<int, 64> bishopShifts;    // Shift amounts for bishop magic numbers
 std::vector<uint64_t> rookAttackTable;    // Lookup table for rook attacks
 std::vector<uint64_t> bishopAttackTable;  // Lookup table for bishop attacks
 
-// Thread management variables
-constexpr int MIN_DEPTH_FOR_PARALLEL = 4;  // Only parallelize deeper searches
-constexpr int MAX_THREADS = 4;  // Limit thread count to avoid overhead
-
 // Default value for en passant
 int enPassantSquare = -1;
+const int R = 2;  // Null move reduction depth
+const int NULL_MOVE_MARGIN = 300;  // Safety margin for null move pruning
+
+// Constants for futility pruning
+const int FUTILITY_MARGIN = 100;      // 1 pawn
+const int EXTENDED_FUTILITY_MARGIN = 300;  // 3 pawns
+
+const int NUM_THREADS = 4;  // Number of threads to use
+std::mutex searchMutex;     // Mutex for thread synchronization
+
+// Saves the current board state into a Position struct
+Position saveBitboards() {
+    std::lock_guard<std::mutex> lock(searchMutex);
+    Position pos;
+    
+    // Save all piece bitboards
+    pos.whitePawns = whitePawns;
+    pos.whiteKnights = whiteKnights;
+    pos.whiteBishops = whiteBishops;
+    pos.whiteRooks = whiteRooks;
+    pos.whiteQueens = whiteQueens;
+    pos.whiteKing = whiteKing;
+    
+    pos.blackPawns = blackPawns;
+    pos.blackKnights = blackKnights;
+    pos.blackBishops = blackBishops;
+    pos.blackRooks = blackRooks;
+    pos.blackQueens = blackQueens;
+    pos.blackKing = blackKing;
+    
+    // Save composite bitboards
+    pos.whitePieces = whitePieces;
+    pos.blackPieces = blackPieces;
+    pos.occupiedSquares = occupiedSquares;
+    pos.emptySquares = emptySquares;
+    
+    // Save castling rights
+    pos.castling = castlingRights;
+    // Save en passant square
+    pos.enPassantSquare = enPassantSquare;
+
+    return pos;
+}
 
 // main function; holds game loop
 int main() {
@@ -454,7 +501,7 @@ int main() {
             move.color = currentPlayer;
 
             // Check if move is legal
-            std::vector<Move> legalMoves = generateMoves(currentPlayer);
+            std::vector<Move> legalMoves = generateMoves(saveBitboards(), currentPlayer);
             auto moveIt = std::find_if(legalMoves.begin(), legalMoves.end(),
                 [&move](const Move& m) {
                     return m.fromSquare == move.fromSquare && m.toSquare == move.toSquare;
@@ -488,7 +535,7 @@ int main() {
         } else {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
-            Move computerMove = findBestMove(currentPlayer, 6); // Search 6 ply deep
+            Move computerMove = findBestMove(currentPlayer, 4); // Search 4 ply deep
             
             // Convert move to algebraic notation for display
             std::string moveStr = 
@@ -503,7 +550,7 @@ int main() {
         }
 
         // Check for game end conditions
-        std::vector<Move> nextMoves = generateMoves(currentPlayer);
+        std::vector<Move> nextMoves = generateMoves(saveBitboards(), currentPlayer);
         if (nextMoves.empty()) {
             if (isInCheck(currentPlayer)) {
                 std::cout << "\nCheckmate! " 
@@ -676,6 +723,7 @@ void initializeBitboards() {
 // Parameters:
 //   move: The move to apply to the board
 void updateBitboards(const Move& move) {
+    std::lock_guard<std::mutex> lock(searchMutex);
     uint64_t fromBB = 1ULL << move.fromSquare;
     uint64_t toBB = 1ULL << move.toSquare;
     bool isWhite = move.color == Move::Color::WHITE;
@@ -800,6 +848,100 @@ void updateBitboards(const Move& move) {
     blackPieces = blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing;
     occupiedSquares = whitePieces | blackPieces;
     emptySquares = ~occupiedSquares;
+}
+
+void updateBitboardsLocal(Position& pos, const Move& move) {
+    uint64_t fromBB = 1ULL << move.fromSquare;
+    uint64_t toBB = 1ULL << move.toSquare;
+    bool isWhite = move.color == Move::Color::WHITE;
+
+    // 1. Remove piece from source square
+    switch (move.pieceType) {
+        case Move::PieceType::PAWN:   
+            isWhite ? pos.whitePawns &= ~fromBB : pos.blackPawns &= ~fromBB; 
+            break;
+        case Move::PieceType::KNIGHT: 
+            isWhite ? pos.whiteKnights &= ~fromBB : pos.blackKnights &= ~fromBB; 
+            break;
+        case Move::PieceType::BISHOP: 
+            isWhite ? pos.whiteBishops &= ~fromBB : pos.blackBishops &= ~fromBB; 
+            break;
+        case Move::PieceType::ROOK:   
+            isWhite ? pos.whiteRooks &= ~fromBB : pos.blackRooks &= ~fromBB; 
+            break;
+        case Move::PieceType::QUEEN:  
+            isWhite ? pos.whiteQueens &= ~fromBB : pos.blackQueens &= ~fromBB; 
+            break;
+        case Move::PieceType::KING:   
+            isWhite ? pos.whiteKing &= ~fromBB : pos.blackKing &= ~fromBB; 
+            break;
+    }
+
+    // 2. Handle captures
+    if (move.isCapture) {
+        if (isWhite) {
+            pos.blackPieces &= ~toBB;
+            if (pos.blackPawns & toBB) pos.blackPawns &= ~toBB;
+            if (pos.blackKnights & toBB) pos.blackKnights &= ~toBB;
+            if (pos.blackBishops & toBB) pos.blackBishops &= ~toBB;
+            if (pos.blackRooks & toBB) pos.blackRooks &= ~toBB;
+            if (pos.blackQueens & toBB) pos.blackQueens &= ~toBB;
+        } else {
+            pos.whitePieces &= ~toBB;
+            if (pos.whitePawns & toBB) pos.whitePawns &= ~toBB;
+            if (pos.whiteKnights & toBB) pos.whiteKnights &= ~toBB;
+            if (pos.whiteBishops & toBB) pos.whiteBishops &= ~toBB;
+            if (pos.whiteRooks & toBB) pos.whiteRooks &= ~toBB;
+            if (pos.whiteQueens & toBB) pos.whiteQueens &= ~toBB;
+        }
+    }
+
+    // 3. Place piece on destination square
+    if (move.isPromotion) {
+        switch (move.promotionPiece) {
+            case Move::PieceType::QUEEN:  
+                isWhite ? pos.whiteQueens |= toBB : pos.blackQueens |= toBB; 
+                break;
+            case Move::PieceType::ROOK:   
+                isWhite ? pos.whiteRooks |= toBB : pos.blackRooks |= toBB; 
+                break;
+            case Move::PieceType::BISHOP: 
+                isWhite ? pos.whiteBishops |= toBB : pos.blackBishops |= toBB; 
+                break;
+            case Move::PieceType::KNIGHT: 
+                isWhite ? pos.whiteKnights |= toBB : pos.blackKnights |= toBB; 
+                break;
+        }
+    } else {
+        switch (move.pieceType) {
+            case Move::PieceType::PAWN:   
+                isWhite ? pos.whitePawns |= toBB : pos.blackPawns |= toBB; 
+                break;
+            case Move::PieceType::KNIGHT: 
+                isWhite ? pos.whiteKnights |= toBB : pos.blackKnights |= toBB; 
+                break;
+            case Move::PieceType::BISHOP: 
+                isWhite ? pos.whiteBishops |= toBB : pos.blackBishops |= toBB; 
+                break;
+            case Move::PieceType::ROOK:   
+                isWhite ? pos.whiteRooks |= toBB : pos.blackRooks |= toBB; 
+                break;
+            case Move::PieceType::QUEEN:  
+                isWhite ? pos.whiteQueens |= toBB : pos.blackQueens |= toBB; 
+                break;
+            case Move::PieceType::KING:   
+                isWhite ? pos.whiteKing |= toBB : pos.blackKing |= toBB; 
+                break;
+        }
+    }
+
+    // 4. Update composite bitboards
+    pos.whitePieces = pos.whitePawns | pos.whiteKnights | pos.whiteBishops | 
+                      pos.whiteRooks | pos.whiteQueens | pos.whiteKing;
+    pos.blackPieces = pos.blackPawns | pos.blackKnights | pos.blackBishops | 
+                      pos.blackRooks | pos.blackQueens | pos.blackKing;
+    pos.occupiedSquares = pos.whitePieces | pos.blackPieces;
+    pos.emptySquares = ~pos.occupiedSquares;
 }
 
 // debugging function
@@ -936,31 +1078,32 @@ void initializeMagicBitboards() {
         rookTable[square].magic = ROOK_MAGICS[square];
         rookTable[square].shift = 64 - __builtin_popcountll(rookTable[square].mask);
         
-        // Initialize attack table
         uint64_t mask = rookTable[square].mask;
         int variations = 1 << __builtin_popcountll(mask);
+        
+        // Pre-allocate with proper size
+        rookTable[square].attacks.clear();
         rookTable[square].attacks.resize(variations);
         
-        // Generate all possible blocker configurations
         for (int i = 0; i < variations; i++) {
             uint64_t blockers = 0ULL;
             int bit = 0;
-            for (int square2 = 0; square2 < 64; square2++) {
-                if (mask & (1ULL << square2)) {
+            for (int j = 0; j < 64; j++) {
+                if (mask & (1ULL << j)) {
                     if (i & (1 << bit)) {
-                        blockers |= (1ULL << square2);
+                        blockers |= (1ULL << j);
                     }
                     bit++;
                 }
             }
             
-            // Calculate the magic index and store the attack pattern
             uint64_t index = ((blockers * rookTable[square].magic) >> rookTable[square].shift);
+            index &= (variations - 1);  // Ensure index is within bounds
             rookTable[square].attacks[index] = generateRookAttacks(square, blockers);
         }
     }
 
-    // Initialize bishop tables (similar to rooks)
+    // Similar changes for bishop table initialization
     for (int square = 0; square < 64; square++) {
         bishopTable[square].mask = generateBishopMask(square);
         bishopTable[square].magic = BISHOP_MAGICS[square];
@@ -968,22 +1111,24 @@ void initializeMagicBitboards() {
         
         uint64_t mask = bishopTable[square].mask;
         int variations = 1 << __builtin_popcountll(mask);
+        
+        bishopTable[square].attacks.clear();
         bishopTable[square].attacks.resize(variations);
         
         for (int i = 0; i < variations; i++) {
             uint64_t blockers = 0ULL;
             int bit = 0;
-            for (int square2 = 0; square2 < 64; square2++) {
-                if (mask & (1ULL << square2)) {
+            for (int j = 0; j < 64; j++) {
+                if (mask & (1ULL << j)) {
                     if (i & (1 << bit)) {
-                        blockers |= (1ULL << square2);
+                        blockers |= (1ULL << j);
                     }
                     bit++;
                 }
             }
             
-            // Calculate the magic index and store the attack pattern
             uint64_t index = ((blockers * bishopTable[square].magic) >> bishopTable[square].shift);
+            index &= (variations - 1);  // Ensure index is within bounds
             bishopTable[square].attacks[index] = generateBishopAttacks(square, blockers);
         }
     }
@@ -992,16 +1137,25 @@ void initializeMagicBitboards() {
 // Functions to get moves using magic bitboards
 uint64_t getRookMoves(int square, uint64_t occupied) {
     MagicEntry& entry = rookTable[square];
-    uint64_t blockers = occupied & entry.mask;  // Get relevant blockers
-    int index = ((blockers * entry.magic) >> entry.shift);  // Calculate magic index
-    return entry.attacks[index];  // Return pre-calculated attack pattern
+    uint64_t blockers = occupied & entry.mask;
+    uint64_t index = ((blockers * entry.magic) >> entry.shift);
+    if (index >= entry.attacks.size()) {
+        return 0ULL;  // Return empty bitboard if index is out of bounds
+    }
+    return entry.attacks[index];
 }
 
 uint64_t getBishopMoves(int square, uint64_t occupied) {
     MagicEntry& entry = bishopTable[square];
-    uint64_t blockers = occupied & entry.mask;  // Get relevant blockers
-    int index = ((blockers * entry.magic) >> entry.shift);  // Calculate magic index
-    return entry.attacks[index];  // Return pre-calculated attack pattern
+    uint64_t blockers = occupied & entry.mask;
+    uint64_t index = ((blockers * entry.magic) >> entry.shift);
+    
+    index &= (entry.attacks.size() - 1);
+    // Safety check for array bounds
+    if (index >= entry.attacks.size()) {
+        return 0ULL;  // Return empty bitboard if index is out of bounds
+    }
+    return entry.attacks[index];
 }
 
 uint64_t getQueenMoves(int square, uint64_t occupied) {
@@ -1070,6 +1224,58 @@ uint64_t getPawnMoves(int square, Move::Color color, uint64_t occupied) {
     return moves;
 }
 
+// Local version of getPawnMoves that works with a Position struct
+uint64_t getPawnMovesLocal(int square, Move::Color color, uint64_t occupied, const Position& pos) {
+    uint64_t moves = 0ULL;
+    uint64_t pawnBB = 1ULL << square;
+
+    if (color == Move::Color::WHITE) {
+        uint64_t singlePush = (pawnBB << 8) & ~occupied;
+        moves |= singlePush;
+        
+        if (pawnBB & RANK_2) {
+            moves |= ((singlePush << 8) & ~occupied & RANK_4);
+        }
+        if ((square % 8) != 0) {
+            moves |= ((pawnBB << 7) & pos.blackPieces & ~FILE_H);
+        }
+        if ((square % 8) != 7) {
+            moves |= ((pawnBB << 9) & pos.blackPieces & ~FILE_A);
+        }
+        if (pos.enPassantSquare != -1 && square >= 24 && square < 32) {
+            if ((square % 8) != 0 && pos.enPassantSquare == square + 7) {
+                moves |= (1ULL << pos.enPassantSquare);
+            }
+            if ((square % 8) != 7 && pos.enPassantSquare == square + 9) {
+                moves |= (1ULL << pos.enPassantSquare);
+            }
+        }
+    } else {
+        uint64_t singlePush = (pawnBB >> 8) & ~occupied;
+        moves |= singlePush;
+        
+        if (pawnBB & RANK_7) {
+            moves |= ((singlePush >> 8) & ~occupied & RANK_5);
+        }
+        if ((square % 8) != 0) {
+            moves |= ((pawnBB >> 9) & pos.whitePieces & ~FILE_H);
+        }
+        if ((square % 8) != 7) {
+            moves |= ((pawnBB >> 7) & pos.whitePieces & ~FILE_A);
+        }
+        if (pos.enPassantSquare != -1 && square >= 32 && square < 40) {
+            if ((square % 8) != 0 && pos.enPassantSquare == square - 9) {
+                moves |= (1ULL << pos.enPassantSquare);
+            }
+            if ((square % 8) != 7 && pos.enPassantSquare == square - 7) {
+                moves |= (1ULL << pos.enPassantSquare);
+            }
+        }
+    }
+
+    return moves;
+}
+
 uint64_t getKnightMoves(int square) {
     return KNIGHT_ATTACKS[square];  // Return pre-calculated knight attacks
 }
@@ -1122,12 +1328,64 @@ bool isSquareAttacked(int square, Move::Color attackingColor) {
     return false;
 }
 
+// Local version of isSquareAttacked that works with a Position struct
+bool isSquareAttackedLocal(int square, Move::Color attackingColor, const Position& pos) {
+    uint64_t occupied = pos.whitePieces | pos.blackPieces;
+    
+    // Check for pawn attacks
+    if (attackingColor == Move::Color::WHITE) {
+        if (square > 7 && ((square % 8) > 0 && getBit(pos.whitePawns, square - 9) ||
+            (square % 8) < 7 && getBit(pos.whitePawns, square - 7))) {
+            return true;
+        }
+    } else {
+        if (square < 56 && ((square % 8) > 0 && getBit(pos.blackPawns, square + 7) ||
+            (square % 8) < 7 && getBit(pos.blackPawns, square + 9))) {
+            return true;
+        }
+    }
+
+    // Check for knight attacks
+    uint64_t knightAttacks = getKnightMoves(square);
+    if (knightAttacks & (attackingColor == Move::Color::WHITE ? 
+        pos.whiteKnights : pos.blackKnights))
+        return true;
+
+    // Check for bishop/queen attacks
+    uint64_t bishopAttacks = getBishopMoves(square, occupied);
+    if (bishopAttacks & (attackingColor == Move::Color::WHITE ? 
+        (pos.whiteBishops | pos.whiteQueens) : (pos.blackBishops | pos.blackQueens)))
+        return true;
+
+    // Check for rook/queen attacks
+    uint64_t rookAttacks = getRookMoves(square, occupied);
+    if (rookAttacks & (attackingColor == Move::Color::WHITE ? 
+        (pos.whiteRooks | pos.whiteQueens) : (pos.blackRooks | pos.blackQueens)))
+        return true;
+
+    // Check for king attacks
+    uint64_t kingAttacks = getKingMoves(square);
+    if (kingAttacks & (attackingColor == Move::Color::WHITE ? 
+        pos.whiteKing : pos.blackKing))
+        return true;
+
+    return false;
+}
+
 bool isInCheck(Move::Color color) {
     uint64_t kingBB = (color == Move::Color::WHITE) ? whiteKing : blackKing;
     int kingSquare = __builtin_ctzll(kingBB);  // Get king's square (least significant set bit)
     return isSquareAttacked(kingSquare, color == Move::Color::WHITE ? 
         Move::Color::BLACK : Move::Color::WHITE);
 }
+
+// Local version of isInCheck that works with a Position struct
+bool isInCheckLocal(const Position& pos, Move::Color color) {
+    uint64_t kingBB = (color == Move::Color::WHITE) ? pos.whiteKing : pos.blackKing;
+    int kingSquare = __builtin_ctzll(kingBB);
+    return isSquareAttackedLocal(kingSquare, color == Move::Color::WHITE ? 
+        Move::Color::BLACK : Move::Color::WHITE, pos);
+} 
 
 uint64_t getCastlingMoves(Move::Color color, uint64_t occupied) {
     uint64_t moves = 0ULL;
@@ -1175,41 +1433,52 @@ uint64_t getCastlingMoves(Move::Color color, uint64_t occupied) {
     return moves;
 }
 
-// Saves the current board state into a Position struct
-Position saveBitboards() {
-    Position pos;
+// Local version of getCastlingMoves that works with a Position struct
+uint64_t getCastlingMovesLocal(Move::Color color, uint64_t occupied, const Position& pos) {
+    uint64_t moves = 0ULL;
     
-    // Save all piece bitboards
-    pos.whitePawns = whitePawns;
-    pos.whiteKnights = whiteKnights;
-    pos.whiteBishops = whiteBishops;
-    pos.whiteRooks = whiteRooks;
-    pos.whiteQueens = whiteQueens;
-    pos.whiteKing = whiteKing;
+    if (color == Move::Color::WHITE) {
+        if (pos.castling.whiteKingside) {
+            if (!getBit(occupied, 5) && !getBit(occupied, 6) &&
+                !isSquareAttackedLocal(4, Move::Color::BLACK, pos) &&
+                !isSquareAttackedLocal(5, Move::Color::BLACK, pos) &&
+                !isSquareAttackedLocal(6, Move::Color::BLACK, pos)) {
+                moves |= (1ULL << 6);  // g1
+            }
+        }
+        if (pos.castling.whiteQueenside) {
+            if (!getBit(occupied, 1) && !getBit(occupied, 2) && !getBit(occupied, 3) &&
+                !isSquareAttackedLocal(4, Move::Color::BLACK, pos) &&
+                !isSquareAttackedLocal(3, Move::Color::BLACK, pos) &&
+                !isSquareAttackedLocal(2, Move::Color::BLACK, pos)) {
+                moves |= (1ULL << 2);  // c1
+            }
+        }
+    } else {
+        if (pos.castling.blackKingside) {
+            if (!getBit(occupied, 61) && !getBit(occupied, 62) &&
+                !isSquareAttackedLocal(60, Move::Color::WHITE, pos) &&
+                !isSquareAttackedLocal(61, Move::Color::WHITE, pos) &&
+                !isSquareAttackedLocal(62, Move::Color::WHITE, pos)) {
+                moves |= (1ULL << 62);  // g8
+            }
+        }
+        if (pos.castling.blackQueenside) {
+            if (!getBit(occupied, 57) && !getBit(occupied, 58) && !getBit(occupied, 59) &&
+                !isSquareAttackedLocal(60, Move::Color::WHITE, pos) &&
+                !isSquareAttackedLocal(59, Move::Color::WHITE, pos) &&
+                !isSquareAttackedLocal(58, Move::Color::WHITE, pos)) {
+                moves |= (1ULL << 58);  // c8
+            }
+        }
+    }
     
-    pos.blackPawns = blackPawns;
-    pos.blackKnights = blackKnights;
-    pos.blackBishops = blackBishops;
-    pos.blackRooks = blackRooks;
-    pos.blackQueens = blackQueens;
-    pos.blackKing = blackKing;
-    
-    // Save composite bitboards
-    pos.whitePieces = whitePieces;
-    pos.blackPieces = blackPieces;
-    pos.occupiedSquares = occupiedSquares;
-    pos.emptySquares = emptySquares;
-    
-    // Save castling rights
-    pos.castling = castlingRights;
-    // Save en passant square
-    pos.enPassantSquare = enPassantSquare;
-
-    return pos;
+    return moves;
 }
 
 // Restores a previously saved board state from a Position struct
 void restoreBitboards(const Position& pos) {
+    std::lock_guard<std::mutex> lock(searchMutex);
     // Restore all piece bitboards
     whitePawns = pos.whitePawns;
     whiteKnights = pos.whiteKnights;
@@ -1265,118 +1534,140 @@ int evaluatePosition() {
         
         // Black pieces (negative scores)
         else if (getBit(blackPawns, square)) {
-            score -= PAWN_VALUE + PAWN_PST[63 - square];
+            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
         }
         else if (getBit(blackKnights, square)) {
-            score -= KNIGHT_VALUE + KNIGHT_PST[63 - square];
+            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
         }
         else if (getBit(blackBishops, square)) {
-            score -= BISHOP_VALUE + BISHOP_PST[63 - square];
+            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
         }
         else if (getBit(blackRooks, square)) {
-            score -= ROOK_VALUE + ROOK_PST[63 - square];
+            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
         }
         else if (getBit(blackQueens, square)) {
-            score -= QUEEN_VALUE + QUEEN_PST[63 - square];
+            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
         }
         else if (getBit(blackKing, square)) {
-            score -= KING_PST[63 - square];
+            score -= KING_PST[square ^ 56];
         }
     }
     
     return score;
 }
 
-SearchResult negamax(int depth, int alpha, int beta, Move::Color color) {
-    if (depth == 0) {
-        return quiescenceSearch(alpha, beta, color);
-    }
+// Local version of evaluatePosition that works with a Position struct
+int evaluatePositionLocal(const Position& pos) {
+    int score = 0;
     
-    std::vector<Move> moves = generateMoves(color);
-    if (moves.empty()) {
-        if (isInCheck(color)) return {-KING_VALUE + (KING_VALUE - depth), Move()};
-        return {0, Move()};
-    }
-    
-    sortMoves(moves);
-    
-    SearchResult best = {-KING_VALUE * 2, moves[0]};
-
-    // Use parallel search only for deeper positions to avoid overhead
-    if (depth >= MIN_DEPTH_FOR_PARALLEL && moves.size() > 1) {
-        std::vector<std::future<SearchResult>> futures;
-        std::mutex mtx;
-        int threadsUsed = 0;
-        
-        // Launch parallel searches for top moves
-        for (size_t i = 0; i < moves.size() && threadsUsed < MAX_THREADS; ++i) {
-            futures.push_back(std::async(std::launch::async, [&, move = moves[i], localAlpha = alpha]() {
-                Position oldPosition = saveBitboards();
-                updateBitboards(move);
-                
-                SearchResult result = negamax(depth - 1, -beta, -localAlpha,
-                    color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
-                
-                restoreBitboards(oldPosition);
-                return SearchResult{-result.score, move};
-            }));
-            threadsUsed++;
+    for (int square = 0; square < 64; square++) {
+        // White pieces (positive scores)
+        if (getBit(pos.whitePawns, square)) {
+            score += PAWN_VALUE + PAWN_PST[square];
+        }
+        else if (getBit(pos.whiteKnights, square)) {
+            score += KNIGHT_VALUE + KNIGHT_PST[square];
+        }
+        else if (getBit(pos.whiteBishops, square)) {
+            score += BISHOP_VALUE + BISHOP_PST[square];
+        }
+        else if (getBit(pos.whiteRooks, square)) {
+            score += ROOK_VALUE + ROOK_PST[square];
+        }
+        else if (getBit(pos.whiteQueens, square)) {
+            score += QUEEN_VALUE + QUEEN_PST[square];
+        }
+        else if (getBit(pos.whiteKing, square)) {
+            score += KING_PST[square];
         }
         
-        // Process remaining moves sequentially
-        for (size_t i = threadsUsed; i < moves.size(); ++i) {
-            Position oldPosition = saveBitboards();
-            updateBitboards(moves[i]);
-            
-            SearchResult result = negamax(depth - 1, -beta, -alpha,
-                color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
-            int score = -result.score;
-            
-            restoreBitboards(oldPosition);
-            
-            if (score > best.score) {
-                best = {score, moves[i]};
-                alpha = std::max(alpha, score);
-                if (alpha >= beta) break;
-            }
+        // Black pieces (negative scores)
+        else if (getBit(pos.blackPawns, square)) {
+            score -= PAWN_VALUE + PAWN_PST[square ^ 56];
         }
-        
-        // Collect results from parallel searches
-        for (auto& future : futures) {
-            SearchResult result = future.get();
-            if (result.score > best.score) {
-                best = result;
-                alpha = std::max(alpha, result.score);
-                if (alpha >= beta) break;
-            }
+        else if (getBit(pos.blackKnights, square)) {
+            score -= KNIGHT_VALUE + KNIGHT_PST[square ^ 56];
         }
-    } else {
-        // Sequential search for shallower depths
-        for (const Move& move : moves) {
-            Position oldPosition = saveBitboards();
-            updateBitboards(move);
-            
-            SearchResult result = negamax(depth - 1, -beta, -alpha,
-                color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
-            int score = -result.score;
-            
-            restoreBitboards(oldPosition);
-            
-            if (score > best.score) {
-                best = {score, move};
-                alpha = std::max(alpha, score);
-                if (alpha >= beta) break;
-            }
+        else if (getBit(pos.blackBishops, square)) {
+            score -= BISHOP_VALUE + BISHOP_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackRooks, square)) {
+            score -= ROOK_VALUE + ROOK_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackQueens, square)) {
+            score -= QUEEN_VALUE + QUEEN_PST[square ^ 56];
+        }
+        else if (getBit(pos.blackKing, square)) {
+            score -= KING_PST[square ^ 56];
         }
     }
     
-    return best;
+    return score;
 }
 
-std::vector<Move> generateMoves(Move::Color color) {
+// Helper function to copy a Position
+Position copyPosition(const Position& pos) {
+    Position newPos;
+    newPos.whitePawns = pos.whitePawns;
+    newPos.whiteKnights = pos.whiteKnights;
+    newPos.whiteBishops = pos.whiteBishops;
+    newPos.whiteRooks = pos.whiteRooks;
+    newPos.whiteQueens = pos.whiteQueens;
+    newPos.whiteKing = pos.whiteKing;
+    
+    newPos.blackPawns = pos.blackPawns;
+    newPos.blackKnights = pos.blackKnights;
+    newPos.blackBishops = pos.blackBishops;
+    newPos.blackRooks = pos.blackRooks;
+    newPos.blackQueens = pos.blackQueens;
+    newPos.blackKing = pos.blackKing;
+    
+    newPos.whitePieces = pos.whitePieces;
+    newPos.blackPieces = pos.blackPieces;
+    newPos.occupiedSquares = pos.occupiedSquares;
+    newPos.emptySquares = pos.emptySquares;
+    
+    newPos.castling = pos.castling;
+    newPos.enPassantSquare = pos.enPassantSquare;
+    
+    return newPos;
+}
+
+// Add this near other struct/class definitions
+class ThreadSafePosition {
+    private:
+        Position pos;
+        mutable std::mutex mutex;
+    
+    public:
+        ThreadSafePosition(const Position& initial) : pos(initial) {}
+        
+        Position get() const {
+            std::lock_guard<std::mutex> lock(mutex);
+            return pos;
+        }
+        
+        void update(const Position& newPos) {
+            std::lock_guard<std::mutex> lock(mutex);
+            pos = newPos;
+        }
+        
+        void makeMove(const Move& move) {
+            std::lock_guard<std::mutex> lock(mutex);
+            Position newPos = copyPosition(pos);
+            updateBitboardsLocal(newPos, move);
+            pos = newPos;
+        }
+};
+
+SearchResult quiescenceSearch(ThreadSafePosition& threadPos, int alpha, int beta, Move::Color color);
+SearchResult negamax(ThreadSafePosition& threadPos, int depth, int alpha, int beta, 
+                    Move::Color color, int ply);  // Negamax search with alpha-beta pruning
+
+std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
     std::vector<Move> moves;
-    uint64_t pieces = (color == Move::Color::WHITE) ? whitePieces : blackPieces;
-    uint64_t occupied = whitePieces | blackPieces;
+    uint64_t pieces = (color == Move::Color::WHITE) ? pos.whitePieces : pos.blackPieces;
+    uint64_t occupied = pos.whitePieces | pos.blackPieces;
     
     // Generate moves for each piece type
     for (int square = 0; square < 64; square++) {
@@ -1469,6 +1760,104 @@ std::vector<Move> generateMoves(Move::Color color) {
     return moves;
 }
 
+std::vector<Move> generateMovesLocal(const Position& pos, Move::Color color) {
+    std::vector<Move> moves;
+    uint64_t pieces = (color == Move::Color::WHITE) ? pos.whitePieces : pos.blackPieces;
+    uint64_t occupied = pos.whitePieces | pos.blackPieces;
+    
+    // Generate moves for each piece type
+    for (int square = 0; square < 64; square++) {
+        if (!getBit(pieces, square)) continue;
+        
+        uint64_t legalMoves = 0ULL;
+        Move move;
+        move.fromSquare = square;
+        move.color = color;
+        move.isCastling = false;
+        move.isPromotion = false;
+        
+        // Determine piece type and get legal moves
+        if (getBit(color == Move::Color::WHITE ? pos.whitePawns : pos.blackPawns, square)) {
+            move.pieceType = Move::PieceType::PAWN;
+            legalMoves = getPawnMovesLocal(square, color, occupied, pos);
+            
+            if ((color == Move::Color::WHITE && square >= 48 && square < 56) ||
+                (color == Move::Color::BLACK && square >= 8 && square < 16)) {
+                move.isPromotion = true;
+            }
+        }
+        else if (getBit(color == Move::Color::WHITE ? pos.whiteKnights : pos.blackKnights, square)) {
+            move.pieceType = Move::PieceType::KNIGHT;
+            legalMoves = getKnightMoves(square) & ~pieces;
+        }
+        else if (getBit(color == Move::Color::WHITE ? pos.whiteBishops : pos.blackBishops, square)) {
+            move.pieceType = Move::PieceType::BISHOP;
+            legalMoves = getBishopMoves(square, occupied) & ~pieces;
+        }
+        else if (getBit(color == Move::Color::WHITE ? pos.whiteRooks : pos.blackRooks, square)) {
+            move.pieceType = Move::PieceType::ROOK;
+            legalMoves = getRookMoves(square, occupied) & ~pieces;
+        }
+        else if (getBit(color == Move::Color::WHITE ? pos.whiteQueens : pos.blackQueens, square)) {
+            move.pieceType = Move::PieceType::QUEEN;
+            legalMoves = getQueenMoves(square, occupied) & ~pieces;
+        }
+        else if (getBit(color == Move::Color::WHITE ? pos.whiteKing : pos.blackKing, square)) {
+            move.pieceType = Move::PieceType::KING;
+            legalMoves = getKingMoves(square) & ~pieces;
+            
+            // Add castling moves
+            uint64_t castlingMoves = getCastlingMovesLocal(color, occupied, pos);
+            if (castlingMoves) {
+                while (castlingMoves) {
+                    int toSquare = __builtin_ctzll(castlingMoves);
+                    Move castlingMove = move;
+                    castlingMove.toSquare = toSquare;
+                    castlingMove.isCastling = true;
+                    castlingMove.castlingType = (toSquare % 8 > 4) ? 
+                        Move::CastlingType::KINGSIDE : Move::CastlingType::QUEENSIDE;
+                    moves.push_back(castlingMove);
+                    castlingMoves &= castlingMoves - 1;
+                }
+            }
+        }
+
+        // Convert bitboard of legal moves to actual Move objects
+        while (legalMoves) {
+            int toSquare = __builtin_ctzll(legalMoves);
+            move.toSquare = toSquare;
+            move.isCapture = getBit((color == Move::Color::WHITE ? pos.blackPieces : pos.whitePieces), toSquare);
+            
+            if (move.isPromotion) {
+                Move promotionMove = move;
+                for (auto piece : {Move::PieceType::QUEEN, Move::PieceType::ROOK, 
+                                 Move::PieceType::BISHOP, Move::PieceType::KNIGHT}) {
+                    promotionMove.promotionPiece = piece;
+                    moves.push_back(promotionMove);
+                }
+            } else {
+                moves.push_back(move);
+            }
+            
+            legalMoves &= legalMoves - 1;
+        }
+    }
+    
+    // Filter out moves that would leave the king in check
+    moves.erase(
+        std::remove_if(moves.begin(), moves.end(),
+            [&pos, color](const Move& move) {
+                Position newPos = copyPosition(pos);
+                updateBitboardsLocal(newPos, move);
+                return isInCheckLocal(newPos, color);
+            }
+        ),
+        moves.end()
+    );
+    
+    return moves;
+}
+
 int getPieceValue(Move::PieceType piece) {
     switch (piece) {
         case Move::PieceType::PAWN:   return PAWN_VALUE;
@@ -1498,55 +1887,171 @@ void sortMoves(std::vector<Move>& moves) {
         });
 }
 
-SearchResult quiescenceSearch(int alpha, int beta, Move::Color color) {
-    int standPat = evaluatePosition();
+SearchResult negamax(ThreadSafePosition& threadPos, int depth, int alpha, int beta, 
+                     Move::Color color, int ply) {
+    if (depth == 0) {
+        return quiescenceSearch(threadPos, alpha, beta, color);
+    }
+
+    Position pos = threadPos.get();
+    std::vector<Move> moves = generateMovesLocal(pos, color);
+    
+    if (moves.empty()) {
+        if (isInCheckLocal(pos, color)) return {-KING_VALUE + ply, Move()};
+        return {0, Move()};
+    }
+
+    sortMoves(moves);
+    SearchResult best = {-KING_VALUE * 2, moves[0]};
+
+    for (const Move& move : moves) {
+        Position newPos = copyPosition(pos);
+        updateBitboardsLocal(newPos, move);
+        threadPos.update(newPos);
+
+        SearchResult result = negamax(
+            threadPos,
+            depth - 1,
+            -beta,
+            -alpha,
+            color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE,
+            ply + 1
+        );
+
+        threadPos.update(pos);
+        
+        int score = -result.score;
+        if (score > best.score) {
+            best.score = score;
+            best.bestMove = move;
+        }
+        alpha = std::max(alpha, score);
+        if (alpha >= beta) break;
+    }
+
+    return best;
+}
+
+SearchResult quiescenceSearch(ThreadSafePosition& threadPos, int alpha, int beta, Move::Color color) {
+    Position pos = threadPos.get();
+    int standPat = evaluatePositionLocal(pos);
     if (color == Move::Color::BLACK) standPat = -standPat;
     
     if (standPat >= beta)
-        return {beta, Move()};
+        return SearchResult{beta, Move()};  // Use uniform initialization
     if (alpha < standPat)
         alpha = standPat;
 
-    // Generate only capture moves
     std::vector<Move> captures;
-    for (const Move& move : generateMoves(color)) {
-        if (move.isCapture) {
+    for (const Move& move : generateMovesLocal(pos, color)) {
+        if (move.isCapture || move.isPromotion) {
             captures.push_back(move);
         }
     }
     
-    // Simple sort - promotions first, then regular captures
     std::sort(captures.begin(), captures.end(),
         [](const Move& a, const Move& b) {
-            return a.isPromotion > b.isPromotion;
+            if (a.isPromotion != b.isPromotion)
+                return a.isPromotion > b.isPromotion;
+            return getPieceValue(a.pieceType) < getPieceValue(b.pieceType);
         });
 
-    SearchResult best = {standPat, Move()};
+    SearchResult best{standPat, Move()};  // Use uniform initialization
     for (const Move& move : captures) {
-        Position oldPosition = saveBitboards();
-        updateBitboards(move);
+        Position newPos = copyPosition(pos);
+        updateBitboardsLocal(newPos, move);
+        threadPos.update(newPos);
         
-        SearchResult result = quiescenceSearch(-beta, -alpha, 
-            color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
+        SearchResult result = quiescenceSearch(
+            threadPos,
+            -beta,
+            -alpha,
+            color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE
+        );
+        
+        threadPos.update(pos);
         int score = -result.score;
         
-        restoreBitboards(oldPosition);
-        
         if (score >= beta)
-            return {beta, move};
+            return SearchResult{beta, move};  // Use uniform initialization
             
         if (score > alpha) {
             alpha = score;
-            best = {score, move};
+            best = SearchResult{score, move};  // Use uniform initialization
         }
     }
     
     return best;
 }
 
-Move findBestMove(Move::Color color, int depth) {
-    SearchResult result = negamax(depth, -KING_VALUE * 2, KING_VALUE * 2, color);
-    return result.bestMove;
+Move findBestMove(Move::Color color, int maxDepth) {
+    // Create thread-safe position
+    ThreadSafePosition threadPos(saveBitboards());
+    Position initialPos = threadPos.get();
+    
+    std::vector<Move> rootMoves = generateMovesLocal(initialPos, color);
+    sortMoves(rootMoves);
+
+    struct ThreadResult {
+        std::atomic<int> score{-KING_VALUE * 2};
+        Move bestMove;
+        std::mutex mutex;
+    };
+    auto result = std::make_shared<ThreadResult>();
+
+    // Calculate optimal thread count
+    const int numThreads = std::min(
+        static_cast<int>(std::thread::hardware_concurrency()),
+        static_cast<int>(rootMoves.size())
+    );
+
+    std::vector<std::thread> threads;
+    
+    // Launch threads with round-robin move distribution
+    for (int i = 0; i < numThreads; i++) {
+        threads.emplace_back([&threadPos, &result, &rootMoves, i, numThreads, maxDepth, color]() {
+            ThreadSafePosition localThreadPos(threadPos.get());
+            int localBestScore = -KING_VALUE * 2;
+            Move localBestMove;
+
+            // Process moves assigned to this thread
+            for (int moveIdx = i; moveIdx < rootMoves.size(); moveIdx += numThreads) {
+                Position currentPos = localThreadPos.get();
+                updateBitboardsLocal(currentPos, rootMoves[moveIdx]);
+                localThreadPos.update(currentPos);
+
+                auto searchResult = negamax(
+                    localThreadPos,
+                    maxDepth - 1,
+                    -KING_VALUE * 2,
+                    KING_VALUE * 2,
+                    color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE,
+                    1
+                );
+
+                int score = -searchResult.score;
+                if (score > localBestScore) {
+                    localBestScore = score;
+                    localBestMove = rootMoves[moveIdx];
+                }
+            }
+
+            // Update global best if local is better
+            if (localBestScore > result->score) {
+                std::lock_guard<std::mutex> lock(result->mutex);
+                if (localBestScore > result->score) {
+                    result->score = localBestScore;
+                    result->bestMove = localBestMove;
+                }
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    return result->bestMove;
 }
 
 // end of file

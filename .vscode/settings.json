@@ -61,6 +61,7 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "shared_mutex": "cpp"
     }
 }
