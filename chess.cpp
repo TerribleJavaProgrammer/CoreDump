@@ -21,10 +21,6 @@
 #include <unordered_map> 
 
 
-// Initialize magic lookup tables
-std::array<MagicEntry, 64> rookTable;
-std::array<MagicEntry, 64> bishopTable;
-
 // pre-calculated magic numbers
 constexpr std::array<uint64_t, 64> ROOK_MAGICS = {
     0x0080001020400080ULL, 0x0040001000200040ULL, 0x0080081000200080ULL, 0x0080040800100080ULL,
@@ -90,8 +86,6 @@ uint64_t whitePieces;
 uint64_t blackPieces;
 uint64_t emptySquares;
 
-CastlingRights castlingRights;
-
 // **STRUCTS**
 // Structure to represent a move
 struct Move {
@@ -120,6 +114,12 @@ struct CastlingRights {
     bool blackKingside = true;
     bool blackQueenside = true;
 };
+
+CastlingRights castlingRights;
+
+// Initialize magic lookup tables
+std::array<MagicEntry, 64> rookTable;
+std::array<MagicEntry, 64> bishopTable;
 
 // function declarations
 uint64_t setBit(uint64_t board, int square);
