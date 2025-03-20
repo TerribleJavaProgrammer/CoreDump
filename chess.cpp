@@ -483,7 +483,7 @@ int main() {
         } else {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
-            Move computerMove = findBestMove(currentPlayer, 4); // Search 4 ply deep
+            Move computerMove = findBestMove(currentPlayer, 6); // Search 6 ply deep
             
             // Convert move to algebraic notation for display
             std::string moveStr = 
@@ -1283,23 +1283,26 @@ int evaluatePosition() {
 }
 
 SearchResult negamax(int depth, int alpha, int beta, Move::Color color) {
-    // Base case: evaluate position at leaf nodes
+    // Add transposition table lookup here
+    
+    // Add quiescence search for captures
     if (depth == 0) {
-        return {color == Move::Color::WHITE ? evaluatePosition() : -evaluatePosition(), Move()};
+        return quiescenceSearch(alpha, beta, color);
     }
     
     std::vector<Move> moves = generateMoves(color);
     if (moves.empty()) {
-        if (isInCheck(color)) {
-            return {-KING_VALUE, Move()};  // Checkmate
-        }
-        return {0, Move()};  // Stalemate
+        if (isInCheck(color)) return {-KING_VALUE + (KING_VALUE - depth), Move()};  // Prefer shorter mate
+        return {0, Move()};
     }
     
-    sortMoves(moves);
+    // Improve move ordering
+    sortMoves(moves);  // Consider history heuristic and killer moves
     
     SearchResult best = {-KING_VALUE * 2, moves[0]};
     for (const Move& move : moves) {
+        // Add null move pruning here for non-pawn endings
+        
         Position oldPosition = saveBitboards();
         updateBitboards(move);
         
@@ -1315,10 +1318,12 @@ SearchResult negamax(int depth, int alpha, int beta, Move::Color color) {
         }
         alpha = std::max(alpha, score);
         if (alpha >= beta) {
+            // Store killer move here
             break;
         }
     }
     
+    // Store position in transposition table here
     return best;
 }
 
@@ -1418,12 +1423,79 @@ std::vector<Move> generateMoves(Move::Color color) {
     return moves;
 }
 
+int getPieceValue(Move::PieceType piece) {
+    switch (piece) {
+        case Move::PieceType::PAWN:   return PAWN_VALUE;
+        case Move::PieceType::KNIGHT: return KNIGHT_VALUE;
+        case Move::PieceType::BISHOP: return BISHOP_VALUE;
+        case Move::PieceType::ROOK:   return ROOK_VALUE;
+        case Move::PieceType::QUEEN:  return QUEEN_VALUE;
+        case Move::PieceType::KING:   return KING_VALUE;
+        default: return 0;
+    }
+}
+
 void sortMoves(std::vector<Move>& moves) {
-    // Simple move ordering: captures first
     std::sort(moves.begin(), moves.end(), 
         [](const Move& a, const Move& b) {
-            return a.isCapture > b.isCapture;
+            // Simple capture prioritization
+            if (a.isCapture != b.isCapture) {
+                return a.isCapture > b.isCapture;  // Captures first
+            }
+
+            // For promotions, prefer queen promotions
+            if (a.isPromotion && b.isPromotion) {
+                return a.promotionPiece < b.promotionPiece;  // Queen (0) before other pieces
+            }
+
+            return false;  // Keep original order for non-captures
         });
+}
+
+SearchResult quiescenceSearch(int alpha, int beta, Move::Color color) {
+    int standPat = evaluatePosition();
+    if (color == Move::Color::BLACK) standPat = -standPat;
+    
+    if (standPat >= beta)
+        return {beta, Move()};
+    if (alpha < standPat)
+        alpha = standPat;
+
+    // Generate only capture moves
+    std::vector<Move> captures;
+    for (const Move& move : generateMoves(color)) {
+        if (move.isCapture) {
+            captures.push_back(move);
+        }
+    }
+    
+    // Simple sort - promotions first, then regular captures
+    std::sort(captures.begin(), captures.end(),
+        [](const Move& a, const Move& b) {
+            return a.isPromotion > b.isPromotion;
+        });
+
+    SearchResult best = {standPat, Move()};
+    for (const Move& move : captures) {
+        Position oldPosition = saveBitboards();
+        updateBitboards(move);
+        
+        SearchResult result = quiescenceSearch(-beta, -alpha, 
+            color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE);
+        int score = -result.score;
+        
+        restoreBitboards(oldPosition);
+        
+        if (score >= beta)
+            return {beta, move};
+            
+        if (score > alpha) {
+            alpha = score;
+            best = {score, move};
+        }
+    }
+    
+    return best;
 }
 
 Move findBestMove(Move::Color color, int depth) {
