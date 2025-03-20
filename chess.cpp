@@ -302,6 +302,8 @@ struct Position {
     uint64_t whitePieces, blackPieces, occupiedSquares, emptySquares;
     // Castling rights for this position
     CastlingRights castling;
+    // En passant
+    int enPassantSquare;  // -1 if no en passant possible, otherwise square number
 };
 
 // Structure to store a search result
@@ -364,6 +366,9 @@ std::array<int, 64> bishopShifts;    // Shift amounts for bishop magic numbers
 // **PRE-CALCULATED ATTACK TABLES**
 std::vector<uint64_t> rookAttackTable;    // Lookup table for rook attacks
 std::vector<uint64_t> bishopAttackTable;  // Lookup table for bishop attacks
+
+// Default value for en passant
+int enPassantSquare = -1;
 
 // main function; holds game loop
 int main() {
@@ -665,28 +670,46 @@ void initializeBitboards() {
 // Parameters:
 //   move: The move to apply to the board
 void updateBitboards(const Move& move) {
-    uint64_t fromBB = 1ULL << move.fromSquare;  // Bitboard with only source square set
-    uint64_t toBB = 1ULL << move.toSquare;      // Bitboard with only target square set
+    uint64_t fromBB = 1ULL << move.fromSquare;
+    uint64_t toBB = 1ULL << move.toSquare;
     bool isWhite = move.color == Move::Color::WHITE;
-    
-    // 1. Clear the piece from its original square
+
+    // Reset en passant square
+    int oldEnPassantSquare = enPassantSquare;
+    enPassantSquare = -1;
+
+    // 1. Remove piece from source square
     switch (move.pieceType) {
-        case Move::PieceType::PAWN:   
-            isWhite ? whitePawns &= ~fromBB : blackPawns &= ~fromBB; break;
-        case Move::PieceType::KNIGHT: 
-            isWhite ? whiteKnights &= ~fromBB : blackKnights &= ~fromBB; break;
-        case Move::PieceType::BISHOP: 
-            isWhite ? whiteBishops &= ~fromBB : blackBishops &= ~fromBB; break;
-        case Move::PieceType::ROOK:   
-            isWhite ? whiteRooks &= ~fromBB : blackRooks &= ~fromBB; break;
-        case Move::PieceType::QUEEN:  
-            isWhite ? whiteQueens &= ~fromBB : blackQueens &= ~fromBB; break;
-        case Move::PieceType::KING:   
-            isWhite ? whiteKing &= ~fromBB : blackKing &= ~fromBB; break;
+        case Move::PieceType::PAWN:   isWhite ? whitePawns &= ~fromBB : blackPawns &= ~fromBB; break;
+        case Move::PieceType::KNIGHT: isWhite ? whiteKnights &= ~fromBB : blackKnights &= ~fromBB; break;
+        case Move::PieceType::BISHOP: isWhite ? whiteBishops &= ~fromBB : blackBishops &= ~fromBB; break;
+        case Move::PieceType::ROOK:   isWhite ? whiteRooks &= ~fromBB : blackRooks &= ~fromBB; break;
+        case Move::PieceType::QUEEN:  isWhite ? whiteQueens &= ~fromBB : blackQueens &= ~fromBB; break;
+        case Move::PieceType::KING:   isWhite ? whiteKing &= ~fromBB : blackKing &= ~fromBB; break;
     }
 
-    // 2. Handle captures by clearing captured piece from target square
-    if (move.isCapture) {
+    // 2. Handle special pawn moves
+    if (move.pieceType == Move::PieceType::PAWN) {
+        // Set en passant square for double pawn push
+        if (abs(move.toSquare - move.fromSquare) == 16) {
+            enPassantSquare = isWhite ? move.fromSquare + 8 : move.fromSquare - 8;
+        }
+        
+        // Handle en passant capture
+        if (move.toSquare == oldEnPassantSquare) {
+            uint64_t capturedPawnBB = 1ULL << (isWhite ? move.toSquare - 8 : move.toSquare + 8);
+            if (isWhite) {
+                blackPawns &= ~capturedPawnBB;
+                blackPieces &= ~capturedPawnBB;
+            } else {
+                whitePawns &= ~capturedPawnBB;
+                whitePieces &= ~capturedPawnBB;
+            }
+        }
+    }
+
+    // 3. Handle captures (except en passant)
+    if (move.isCapture && move.toSquare != oldEnPassantSquare) {
         uint64_t* targetBoards[] = {
             isWhite ? &blackPawns : &whitePawns,
             isWhite ? &blackKnights : &whiteKnights,
@@ -696,7 +719,6 @@ void updateBitboards(const Move& move) {
             isWhite ? &blackKing : &whiteKing
         };
         
-        // Find and clear the captured piece
         for (uint64_t* board : targetBoards) {
             if (*board & toBB) {
                 *board &= ~toBB;
@@ -705,59 +727,69 @@ void updateBitboards(const Move& move) {
         }
     }
 
-    // 3. Place the piece on its new square
+    // 4. Place piece on destination square
     if (move.isPromotion) {
-        // Handle pawn promotion
         switch (move.promotionPiece) {
-            case Move::PieceType::QUEEN:
-                isWhite ? whiteQueens |= toBB : blackQueens |= toBB; break;
-            case Move::PieceType::ROOK:
-                isWhite ? whiteRooks |= toBB : blackRooks |= toBB; break;
-            case Move::PieceType::BISHOP:
-                isWhite ? whiteBishops |= toBB : blackBishops |= toBB; break;
-            case Move::PieceType::KNIGHT:
-                isWhite ? whiteKnights |= toBB : blackKnights |= toBB; break;
+            case Move::PieceType::QUEEN:  isWhite ? whiteQueens |= toBB : blackQueens |= toBB; break;
+            case Move::PieceType::ROOK:   isWhite ? whiteRooks |= toBB : blackRooks |= toBB; break;
+            case Move::PieceType::BISHOP: isWhite ? whiteBishops |= toBB : blackBishops |= toBB; break;
+            case Move::PieceType::KNIGHT: isWhite ? whiteKnights |= toBB : blackKnights |= toBB; break;
         }
     } else {
-        // Normal piece placement
         switch (move.pieceType) {
-            case Move::PieceType::PAWN:
-                isWhite ? whitePawns |= toBB : blackPawns |= toBB; break;
-            case Move::PieceType::KNIGHT:
-                isWhite ? whiteKnights |= toBB : blackKnights |= toBB; break;
-            case Move::PieceType::BISHOP:
-                isWhite ? whiteBishops |= toBB : blackBishops |= toBB; break;
-            case Move::PieceType::ROOK:
-                isWhite ? whiteRooks |= toBB : blackRooks |= toBB; break;
-            case Move::PieceType::QUEEN:
-                isWhite ? whiteQueens |= toBB : blackQueens |= toBB; break;
-            case Move::PieceType::KING:
-                isWhite ? whiteKing |= toBB : blackKing |= toBB; break;
+            case Move::PieceType::PAWN:   isWhite ? whitePawns |= toBB : blackPawns |= toBB; break;
+            case Move::PieceType::KNIGHT: isWhite ? whiteKnights |= toBB : blackKnights |= toBB; break;
+            case Move::PieceType::BISHOP: isWhite ? whiteBishops |= toBB : blackBishops |= toBB; break;
+            case Move::PieceType::ROOK:   isWhite ? whiteRooks |= toBB : blackRooks |= toBB; break;
+            case Move::PieceType::QUEEN:  isWhite ? whiteQueens |= toBB : blackQueens |= toBB; break;
+            case Move::PieceType::KING:   isWhite ? whiteKing |= toBB : blackKing |= toBB; break;
         }
     }
 
-    // 4. Handle special case: castling rook moves
+    // 5. Handle castling
     if (move.isCastling) {
+        uint64_t rookFromBB, rookToBB;
         if (isWhite) {
             if (move.castlingType == Move::CastlingType::KINGSIDE) {
-                whiteRooks &= ~(1ULL << 7);  // Clear H1
-                whiteRooks |= (1ULL << 5);   // Set F1
+                rookFromBB = 1ULL << 7;  // H1
+                rookToBB = 1ULL << 5;    // F1
             } else {
-                whiteRooks &= ~(1ULL << 0);  // Clear A1
-                whiteRooks |= (1ULL << 3);   // Set D1
+                rookFromBB = 1ULL << 0;  // A1
+                rookToBB = 1ULL << 3;    // D1
             }
+            whiteRooks = (whiteRooks & ~rookFromBB) | rookToBB;
         } else {
             if (move.castlingType == Move::CastlingType::KINGSIDE) {
-                blackRooks &= ~(1ULL << 63);  // Clear H8
-                blackRooks |= (1ULL << 61);   // Set F8
+                rookFromBB = 1ULL << 63; // H8
+                rookToBB = 1ULL << 61;   // F8
             } else {
-                blackRooks &= ~(1ULL << 56);  // Clear A8
-                blackRooks |= (1ULL << 59);   // Set D8
+                rookFromBB = 1ULL << 56; // A8
+                rookToBB = 1ULL << 59;   // D8
             }
+            blackRooks = (blackRooks & ~rookFromBB) | rookToBB;
         }
     }
 
-    // 5. Update composite bitboards
+    // 6. Update castling rights
+    if (move.pieceType == Move::PieceType::KING) {
+        if (isWhite) {
+            castlingRights.whiteKingside = false;
+            castlingRights.whiteQueenside = false;
+        } else {
+            castlingRights.blackKingside = false;
+            castlingRights.blackQueenside = false;
+        }
+    } else if (move.pieceType == Move::PieceType::ROOK) {
+        if (isWhite) {
+            if (move.fromSquare == 0) castlingRights.whiteQueenside = false;
+            if (move.fromSquare == 7) castlingRights.whiteKingside = false;
+        } else {
+            if (move.fromSquare == 56) castlingRights.blackQueenside = false;
+            if (move.fromSquare == 63) castlingRights.blackKingside = false;
+        }
+    }
+
+    // 7. Update composite bitboards
     whitePieces = whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing;
     blackPieces = blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing;
     occupiedSquares = whitePieces | blackPieces;
@@ -992,7 +1024,15 @@ uint64_t getPawnMoves(int square, Move::Color color, uint64_t occupied) {
         if ((square % 8) != 7) {
             moves |= ((pawnBB << 9) & blackPieces & ~FILE_A);
         }
-        
+        // en passant captures
+        if (enPassantSquare != -1 && square >= 24 && square < 32) { // White pawns on rank 5
+            if ((square % 8) != 0 && enPassantSquare == square + 7) {
+                moves |= (1ULL << enPassantSquare);
+            }
+            if ((square % 8) != 7 && enPassantSquare == square + 9) {
+                moves |= (1ULL << enPassantSquare);
+            }
+        }
     } else {  // Black pawns
         // Single pushes forward
         uint64_t singlePush = (pawnBB >> 8) & ~occupied;
@@ -1009,6 +1049,15 @@ uint64_t getPawnMoves(int square, Move::Color color, uint64_t occupied) {
         // Captures to the right
         if ((square % 8) != 7) {
             moves |= ((pawnBB >> 7) & whitePieces & ~FILE_A);
+        }
+        // En passant captures
+        if (enPassantSquare != -1 && square >= 32 && square < 40) { // Black pawns on rank 4
+            if ((square % 8) != 0 && enPassantSquare == square - 9) {
+                moves |= (1ULL << enPassantSquare);
+            }
+            if ((square % 8) != 7 && enPassantSquare == square - 7) {
+                moves |= (1ULL << enPassantSquare);
+            }
         }
     }
 
@@ -1147,7 +1196,9 @@ Position saveBitboards() {
     
     // Save castling rights
     pos.castling = castlingRights;
-    
+    // Save en passant square
+    pos.enPassantSquare = enPassantSquare;
+
     return pos;
 }
 
@@ -1176,6 +1227,8 @@ void restoreBitboards(const Position& pos) {
     
     // Restore castling rights
     castlingRights = pos.castling;
+    // restore en passant square
+    enPassantSquare = pos.enPassantSquare;
 }
 
 // Evaluates the current position from White's perspective in centipawns
