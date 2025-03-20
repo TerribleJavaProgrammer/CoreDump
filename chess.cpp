@@ -359,6 +359,7 @@ SearchResult negamax(int depth, int alpha, int beta, Move::Color color);  // Neg
 std::vector<Move> generateMoves(Move::Color color);  // Generates all legal moves
 void sortMoves(std::vector<Move>& moves);         // Sorts moves for better pruning (MVV/LVA)
 Move findBestMove(Move::Color color, int depth);   // Finds best move using negamax search
+SearchResult quiescenceSearch(int alpha, int beta, Move::Color color); // Quiescence search for sharp positions
 
 // **ATTACK TABLE INITIALIZATION**
 std::array<int, 64> rookShifts;      // Shift amounts for rook magic numbers
