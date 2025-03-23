@@ -1,0 +1,8 @@
+#gitignore; do not touch
+
+# ignore .exe files
+*.exe
+# ignore IDE configuration files
+.vscode/
+# ignore .o files  (are in obj file folder)
+chess_engine/obj/
