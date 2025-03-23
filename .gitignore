@@ -1,0 +1,8 @@
+# ignore obj directory (contains compiled binaries)
+chess_engine/obj/
+
+# ignore ide config folder
+.vscode/
+
+# ignore .exe files
+*.exe

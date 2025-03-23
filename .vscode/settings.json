@@ -1,9 +1,14 @@
 {
     "files.associations": {
+        "*.cpp": "cpp",
+        "*.h": "cpp",
+        "*.c": "cpp",
+        "iostream": "cpp",
         "array": "cpp",
         "atomic": "cpp",
         "bit": "cpp",
         "*.tcc": "cpp",
+        "bitset": "cpp",
         "cctype": "cpp",
         "charconv": "cpp",
         "chrono": "cpp",
@@ -12,15 +17,19 @@
         "compare": "cpp",
         "concepts": "cpp",
         "condition_variable": "cpp",
+        "cstdarg": "cpp",
         "cstddef": "cpp",
         "cstdint": "cpp",
         "cstdio": "cpp",
         "cstdlib": "cpp",
+        "cstring": "cpp",
         "ctime": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
         "deque": "cpp",
+        "list": "cpp",
         "map": "cpp",
+        "set": "cpp",
         "string": "cpp",
         "unordered_map": "cpp",
         "vector": "cpp",
@@ -44,7 +53,6 @@
         "initializer_list": "cpp",
         "iomanip": "cpp",
         "iosfwd": "cpp",
-        "iostream": "cpp",
         "istream": "cpp",
         "limits": "cpp",
         "mutex": "cpp",
@@ -52,6 +60,7 @@
         "numbers": "cpp",
         "ostream": "cpp",
         "semaphore": "cpp",
+        "shared_mutex": "cpp",
         "span": "cpp",
         "sstream": "cpp",
         "stdexcept": "cpp",
@@ -59,9 +68,31 @@
         "streambuf": "cpp",
         "text_encoding": "cpp",
         "thread": "cpp",
+        "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp",
-        "bitset": "cpp",
-        "shared_mutex": "cpp"
-    }
+        "variant": "cpp"
+    },
+    "C_Cpp.default.intelliSenseMode": "gcc-x64",
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "/usr/include/c++/9",
+        "/usr/local/include"
+    ],
+    "C_Cpp.default.defines": [],
+    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.formatting": "ClangFormat",
+    "C_Cpp.clang_format_style": "file",
+    "tasks.runOnSave": {
+        "commands": [
+            {
+                "match": ".*",
+                "isAsync": true,
+                "command": "make"
+            }
+        ]
+    },
+    "makefile.makePath": "make",
+    "makefile.buildDirectory": "${workspaceFolder}/build",
+    "editor.formatOnSave": true
 }

@@ -2,53 +2,27 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: g++.exe debug",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
-            "args": [
-                "-fdiagnostics-color=always",
-                "-std=c++20",
-                "-g", // Enable debugging symbols
-                "-O0", // No optimization
-                "${file}",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
+            "label": "build",
+            "type": "shell",
+            "command": "make",
+            "args": [],
             "group": {
                 "kind": "build",
-                "isDefault": true // Set this as the default build for debugging
+                "isDefault": true
             },
-            "detail": "Build with debugging enabled using GCC in MSYS2."
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task for building the C++ project using make"
         },
         {
-            "type": "cppbuild",
-            "label": "C/C++: g++.exe build with profiling",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "label": "clean",
+            "type": "shell",
+            "command": "make",
             "args": [
-                "-fdiagnostics-color=always",
-                "-std=c++20",
-                "-O3",
-                "-march=native",
-                "-flto",
-                "-fprofile-generate",  // This is necessary for profiling
-                "${file}",
-                "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
-            ],
-            "options": {
-                "cwd": "${fileDirname}"
-            },
-            "problemMatcher": [
-                "$gcc"
+                "clean"
             ],
             "group": "build",
-            "detail": "Build with profiling enabled using GCC in MSYS2."
+            "problemMatcher": [],
+            "detail": "Clean the build by running the make clean command"
         }
     ]
 }
