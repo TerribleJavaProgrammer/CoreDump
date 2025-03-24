@@ -26,33 +26,36 @@ MOVE_SRC = $(MOVE_DIR)/movegen.cpp $(MOVE_DIR)/nullMoveHandler.cpp
 # All source files
 SRC_FILES = $(MAIN_SRC) $(BOARD_SRC) $(ENGINE_SRC) $(HEURISTICS_SRC) $(MOVE_SRC)
 
-# Object files (store them in "out" folder)
-OBJ_FILES = $(patsubst %.cpp, $(OUT_DIR)/%.o, $(SRC_FILES))
-
-# Ensure output directory exists (Windows & Unix compatible)
-$(shell if not exist $(OUT_DIR) mkdir $(OUT_DIR))
+# Object files (store them in "out" folder while preserving directory structure)
+OBJ_FILES = $(patsubst chess_engine/src/%.cpp, $(OUT_DIR)/%.o, $(SRC_FILES))
 
 # Default target - build the engine
-all: $(OUT_DIR) $(TARGET)
+all: $(TARGET)
 
 # Build the chess engine
-$(TARGET): $(OBJ_FILES)
+$(TARGET): $(OBJ_FILES) | $(OUT_DIR)
+	@echo Linking: $@
 	@$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Compile source files (place object files in "out")
-$(OUT_DIR)/%.o: %.cpp | $(OUT_DIR)
+$(OUT_DIR)/%.o: chess_engine/src/%.cpp | $(OUT_DIR)
 	@echo Compiling: $<
-	@if not exist "$(dir $@)" mkdir "$(dir $@)"
+	@mkdir -p $(dir $@)
 	@$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
-# Create output directory if not existing (Windows-friendly)
+# Ensure output directory exists
 $(OUT_DIR):
-	@if not exist $(OUT_DIR) mkdir $(OUT_DIR)
+	@mkdir -p $(OUT_DIR)
 
-# Clean build files (Windows & Unix compatible)
+# Clean build files
 clean:
-	@echo Cleaning... $<
-	@if exist $(OUT_DIR) rmdir /s /q $(OUT_DIR) & if exist $(OUT_DIR) rm -rf $(OUT_DIR)
+	@echo Cleaning...
+	@rm -rf $(OUT_DIR)
+
+run:
+	@make clean
+	@make all
+	@./out/chess
 
 # Phony targets
 .PHONY: all clean
