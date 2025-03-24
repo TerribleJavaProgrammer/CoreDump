@@ -1,4 +1,6 @@
 #include "board/position.h"
+#include <iostream>
+#include <sstream>
 
 // Initializes all bitboards to the starting chess position
 // Sets up the initial game state with pieces in their standard positions
@@ -133,3 +135,61 @@ std::string Position::displayPosition() {
     }
     return returnable;
 }
+
+char Position::getSquareChar(int square) {
+    if (getBit(whitePawns, square)) return 'P';    // white pawn
+    if (getBit(whiteKnights, square)) return 'N';  // white knight
+    if (getBit(whiteBishops, square)) return 'B';  // white bishop
+    if (getBit(whiteRooks, square)) return 'R';    // white rook
+    if (getBit(whiteQueens, square)) return 'Q';   // white queen
+    if (getBit(whiteKing, square)) return 'K';     // white king
+    if (getBit(blackPawns, square)) return 'p';    // black pawn
+    if (getBit(blackKnights, square)) return 'n';  // black knight
+    if (getBit(blackBishops, square)) return 'b';  // black bishop
+    if (getBit(blackRooks, square)) return 'r';    // black rook
+    if (getBit(blackQueens, square)) return 'q';   // black queen
+    if (getBit(blackKing, square)) return 'k';     // black king
+    return '.';                                    // empty square
+}
+
+std::string Position::getFen(bool whiteToMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget) {
+    std::ostringstream fen;
+    // Encode board position
+    for (int rank = 7; rank >= 0; --rank) {
+        int emptyCount = 0;
+        for (int file = 0; file < 8; ++file) {
+            int square = rank * 8 + file;
+            char squareValue = getSquareChar(square);
+            if (squareValue == '.') {
+                ++emptyCount;
+            } else {
+                if (emptyCount > 0) {
+                    fen << emptyCount;
+                    emptyCount = 0;
+                }
+                fen << squareValue;
+            }
+        }
+        if (emptyCount > 0) {
+            fen << emptyCount;
+        }
+        if (rank > 0) {
+            fen << '/';
+        }
+    }
+
+    // Active color
+    fen << ' ' << (whiteToMove ? 'w' : 'b');
+    
+    // Castling availability
+    fen << ' ' << (castlingRights.empty() ? "-" : castlingRights);
+    
+    // En passant target
+    fen << ' ' << (enPassantTarget.empty() ? "-" : enPassantTarget);
+    
+    // Halfmove clock and fullmove number
+    fen << ' ' << halfmoveClock << ' ' << fullmoveNumber;
+    
+    return fen.str();
+}
+

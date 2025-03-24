@@ -29,6 +29,9 @@ struct Position {
     void initializePosition(); // Function prototype
     Position getPosition(); // Function prototype
     std::string displayPosition(); // Function prototype
+    char getSquareChar(int square); // function prototype
+    std::string getFen(bool whiteToMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget); // Function prototype 
 };
 
 #endif // POSITION_H
+

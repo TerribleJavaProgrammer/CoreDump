@@ -1,6 +1,7 @@
 #ifndef MOVE_H
 #define MOVE_H
 
+#include <string>
 #include <stdint.h>
 
 struct Move {
@@ -92,6 +93,19 @@ struct Move {
                prevEnPassantSquare == other.prevEnPassantSquare &&
                prevCastlingRights == other.prevCastlingRights &&
                prevKingSquare == other.prevKingSquare;
+    }
+
+    inline static int fromAlgebraic(char letter, char number) {
+        return (number - '1') * 8 + (letter - 'a');
+    }
+
+    inline static std::string toAlgebraic(int square) {
+        std::string algebraic = "";
+        char file = square % 8 + 'a';
+        char rank = square / 8 + '1';
+        algebraic += file;
+        algebraic += rank;
+        return algebraic;
     }
 };
 

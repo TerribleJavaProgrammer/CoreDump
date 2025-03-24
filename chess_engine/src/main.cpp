@@ -32,6 +32,7 @@ int main() {
         }
 
         std::cout << currPosition.displayPosition() << std::endl;
+        std::cout << currPosition.getFen(currentPlayer == Move::Color::WHITE, 0, 0, "", "") << std::endl;
 
         // Determine if it's player's turn
         bool isPlayerTurn = (currentPlayer == Move::Color::WHITE) == playerIsWhite;
@@ -60,8 +61,8 @@ int main() {
 
             // Create and validate move
             Move move;
-            move.fromSquare = (input[1] - '1') * 8 + (input[0] - 'a');
-            move.toSquare = (input[4] - '1') * 8 + (input[3] - 'a');
+            move.fromSquare = Move::fromAlgebraic(input[0], input[1]);
+            move.toSquare = Move::fromAlgebraic(input[3], input[4]);
             move.color = currentPlayer;
 
             // Check if move is legal
