@@ -2,6 +2,7 @@
 #define POSITION_H
 
 #include <stdint.h>
+#include <string>
 #include <iostream>
 #include "move/move.h"
 #include "board/bitboard.h"
@@ -28,7 +29,7 @@ struct Position {
     void initializePosition(); // Function prototype
     void updatePosition(const Move& move); // Function prototype
     Position getPosition(); // Function prototype
-    void displayPosition(); // Function prototype
+    std::string displayPosition(); // Function prototype
 };
 
 #endif // POSITION_H

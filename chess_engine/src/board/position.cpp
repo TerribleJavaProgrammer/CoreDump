@@ -213,49 +213,28 @@ Position Position::getPosition() {
 // helper functions
 // Displays the current chess board state in a human-readable format
 // Uses Unicode chess pieces and coordinate system (a-h, 1-8)
-void Position::displayPosition() {
+std::string Position::displayPosition() {
+    std::string returnable = "";
     // Loop through ranks from top (8) to bottom (1)
     for (int rank = 7; rank >= 0; --rank) {
-        // Print rank number
-        std::cout << (rank + 1) << " ";
-        
         // Loop through files from left (a) to right (h)
         for (int file = 0; file < 8; ++file) {
             int square = rank * 8 + file;  // Convert rank/file to square index
-            /*
-            // fancy!
-            // Check each piece type and print corresponding Unicode symbol
-            if (getBit(whitePawns, square)) std::cout << "♟ ";        // White pawn
-            else if (getBit(whiteKnights, square)) std::cout << "♞ ";  // White knight
-            else if (getBit(whiteBishops, square)) std::cout << "♝ ";  // White bishop
-            else if (getBit(whiteRooks, square)) std::cout << "♜ ";    // White rook
-            else if (getBit(whiteQueens, square)) std::cout << "♛ ";   // White queen
-            else if (getBit(whiteKing, square)) std::cout << "♚ ";     // White king
-            else if (getBit(blackPawns, square)) std::cout << "♙ ";    // Black pawn
-            else if (getBit(blackKnights, square)) std::cout << "♘ ";  // Black knight
-            else if (getBit(blackBishops, square)) std::cout << "♗ ";  // Black bishop
-            else if (getBit(blackRooks, square)) std::cout << "♖ ";    // Black rook
-            else if (getBit(blackQueens, square)) std::cout << "♕ ";   // Black queen
-            else if (getBit(blackKing, square)) std::cout << "♔ ";     // Black king
-            else std::cout << ". ";                                    // Empty square
-
-            */
-            if (getBit(whitePawns, square)) std::cout << "p ";        // White pawn
-            else if (getBit(whiteKnights, square)) std::cout << "n ";  // White knight
-            else if (getBit(whiteBishops, square)) std::cout << "b ";  // White bishop
-            else if (getBit(whiteRooks, square)) std::cout << "r ";    // White rook
-            else if (getBit(whiteQueens, square)) std::cout << "q ";   // White queen
-            else if (getBit(whiteKing, square)) std::cout << "k ";     // White king
-            else if (getBit(blackPawns, square)) std::cout << "P ";    // Black pawn
-            else if (getBit(blackKnights, square)) std::cout << "N ";  // Black knight
-            else if (getBit(blackBishops, square)) std::cout << "B ";  // Black bishop
-            else if (getBit(blackRooks, square)) std::cout << "R ";    // Black rook
-            else if (getBit(blackQueens, square)) std::cout << "Q ";   // Black queen
-            else if (getBit(blackKing, square)) std::cout << "K ";     // Black king
-            else std::cout << ". ";                                    // Empty square
+            if (getBit(whitePawns, square)) returnable.append("p ");        // White pawn
+            else if (getBit(whiteKnights, square)) returnable.append("n ");  // White knight
+            else if (getBit(whiteBishops, square)) returnable.append("b ");  // White bishop
+            else if (getBit(whiteRooks, square)) returnable.append("r ");    // White rook
+            else if (getBit(whiteQueens, square)) returnable.append("q ");   // White queen
+            else if (getBit(whiteKing, square)) returnable.append("k ");     // White king
+            else if (getBit(blackPawns, square)) returnable.append("P ");    // Black pawn
+            else if (getBit(blackKnights, square)) returnable.append("N ");  // Black knight
+            else if (getBit(blackBishops, square)) returnable.append("B ");  // Black bishop
+            else if (getBit(blackRooks, square)) returnable.append("R ");    // Black rook
+            else if (getBit(blackQueens, square)) returnable.append("Q ");   // Black queen
+            else if (getBit(blackKing, square)) returnable.append("K ");     // Black king
+            else returnable.append(". ");                                    // Empty square
         }
-        std::cout << std::endl;
+        returnable.append("\n");
     }
-    // Print file letters at bottom
-    std::cout << "  a b c d e f g h" << std::endl;
+    return returnable;
 }

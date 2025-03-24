@@ -2,6 +2,7 @@
 #define SEARCH_H
 
 #include <stdint.h>
+#include <chrono>
 #include "board/position.h"
 #include "extraHeuristics/transposition/transposition.h"
 #include "extraHeuristics/transposition/TTentry.h"

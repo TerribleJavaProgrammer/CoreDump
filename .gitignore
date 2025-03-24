@@ -2,6 +2,10 @@
 
 # ignore .exe files
 *.exe
+# ignore .class files
+*.exe
+# ignore .dll files
+*.dll
 # ignore IDE configuration files
 .vscode/
 # ignore .o files  (are in obj file folder)
