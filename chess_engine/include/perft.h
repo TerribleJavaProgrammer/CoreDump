@@ -6,6 +6,7 @@
 #include <thread>
 #include <future>
 #include "board/position.h"
+#include "board/board.h"
 #include "move/movegen.h"
 #include "move/move.h"
 
