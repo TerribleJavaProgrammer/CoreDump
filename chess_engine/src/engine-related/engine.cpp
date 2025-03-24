@@ -1,6 +1,8 @@
 #include "engine-related/engine.h"
 
 Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
+    nodeCount = 0;
+    leafNodeCount = 0;
     ThreadSafePosition threadPos(currPosition.getPosition());
     Position initialPos = threadPos.get();
 
@@ -23,7 +25,6 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
     auto result = std::make_shared<ThreadResult>();
 
     auto startTime = std::chrono::high_resolution_clock::now();
-    std::atomic<uint64_t> nodesSearched{0}; 
 
     const int numThreads = std::min(
         static_cast<int>(std::thread::hardware_concurrency()),
@@ -64,12 +65,14 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
                         -KING_VALUE * 2,
                         KING_VALUE * 2,
                         (color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE),
-                        0
+                        0,
+                        startTime,
+                        timeLimitSeconds
                     );
+                    // int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, int ply, std::chrono::_V2::system_clock::time_point startTime, double timeLimit)
                     int score = -searchResult.score;
+                    leafNodeCount++;
                     undoMove(currentPos, rootMoves[index]);
-
-                    nodesSearched.fetch_add(1);
 
                     if (score > BestScore) {
                         BestScore = score;
@@ -99,6 +102,8 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
                   << " | Best Move: " << bestMoveSoFar.fromSquare 
                   << " -> " << bestMoveSoFar.toSquare
                   << " | Score: " << result->score
+                  << " | Node Count: " << nodeCount
+                  << " | Leaf Node Count: " << leafNodeCount
                   << " | Time Elapsed: " << elapsedTime << "s\n";
 
         if (elapsedTime >= timeLimitSeconds) {
@@ -110,13 +115,16 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
     double totalTime = std::chrono::duration<double>(
         std::chrono::high_resolution_clock::now() - startTime
     ).count();
-    double nps = nodesSearched / totalTime;
+    double nps = nodeCount / totalTime;
+    double lnps = leafNodeCount / totalTime;
 
     std::cout << "============================\n";
     std::cout << "Search Completed!\n";
     std::cout << "Total Time: " << totalTime << "s\n";
-    std::cout << "Nodes Searched: " << nodesSearched << "\n";
+    std::cout << "Nodes Searched: " << nodeCount << "\n";
     std::cout << "Nodes Per Second (NPS): " << nps << "\n";
+    std::cout << "Leaf Nodes Evaluated: " << leafNodeCount << "\n";
+    std::cout << "Leaf Nodes Per Second (LNPS): " << lnps << "\n";
     std::cout << "Final Best Move: " << bestMoveSoFar.fromSquare << " -> " 
               << bestMoveSoFar.toSquare << " (Score: " << result->score << ")\n";
     std::cout << "============================\n";

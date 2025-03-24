@@ -3,7 +3,7 @@ package EngineInteraction;
 
 public class EngineInteraction {
     static {
-        System.loadLibrary("engine");
+        System.loadLibrary("EngineInteraction");
         System.out.println("Library path: " + System.getProperty("java.library.path"));
     }
 

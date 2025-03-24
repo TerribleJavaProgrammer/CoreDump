@@ -41,9 +41,3 @@ int sortMoves(std::vector<Move>& moves, const Position& pos, int ply, Move::Colo
     
     return 0;
 }
-
-int getMovePriority(const Move& move, const Position& pos) {
-    if (move.isCapture) return 1000 + getPieceValue(move.capturedPieceType);
-    if (move.isCastling) return 800;
-    return 0;
-}

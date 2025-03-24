@@ -1,9 +1,14 @@
 #include "engine-related/search/search.h"
 
-int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, int ply) {
+std::atomic<uint64_t> nodeCount = 0;
+std::atomic<uint64_t> leafNodeCount = 0;
+
+int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, int ply, 
+    std::chrono::high_resolution_clock::time_point startTime, double timeLimit) {
+    nodeCount++;
     // Transposition Table Lookup
     TTEntry* ttEntry = probeTT(pos.zobristKey, depth, alpha, beta);
-    if (ttEntry && ttEntry->depth >= depth) {  
+    if (ttEntry && ttEntry->depth >= depth) { 
         if (ttEntry->flag == EXACT) return ttEntry->score;
         if (ttEntry->flag == LOWERBOUND && ttEntry->score >= beta) return ttEntry->score;
         if (ttEntry->flag == UPPERBOUND && ttEntry->score <= alpha) return ttEntry->score;
@@ -32,6 +37,10 @@ int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, in
     bool isPV = false;  // Principal Variation (best line so far)
 
     for (size_t i = 0; i < moves.size(); i++) {
+        auto elapsedTime = std::chrono::duration<double>(
+            std::chrono::high_resolution_clock::now() - startTime
+        ).count();
+        if (elapsedTime >= timeLimit) return evaluatePosition(pos, color);
         Move& move = moves[i];
 
         //  **Futility Pruning** (Skip obviously bad moves)
@@ -45,10 +54,10 @@ int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, in
 
         //  **Late Move Reductions (LMR)**
         if (!isPV && i >= 4 && !move.isCapture && depth >= 3) {
-            searchDepth -= 1;  // Reduce depth for bad moves
-        }
+            searchDepth -= std::min(2, depth / 2);  // Reduce depth more aggressively
+        }        
 
-        int score = -negamax(pos, searchDepth, -beta, -alpha, color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE, ply + 1);
+        int score = -negamax(pos, searchDepth, -beta, -alpha, color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE, ply + 1, startTime, timeLimit);
         undoMove(pos, move);
 
         if (score >= beta) {
@@ -73,7 +82,6 @@ int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, in
     // Store result in Transposition Table
     TTFlag flag = (bestScore <= alpha) ? UPPERBOUND : ((bestScore >= beta) ? LOWERBOUND : EXACT);
     storeTT(pos.computeHash(), depth, bestScore, bestMove, flag);
-
     return bestScore;
 }
 
@@ -87,10 +95,11 @@ int quiescenceSearch(Position& pos, int alpha, int beta, Move::Color color, int 
 
     for (Move& move : captures) {
         // Skip bad captures using SEE
-        if (!SEE(pos, move)) continue; 
+        if (!SEE(move)) continue; 
 
         Position newPos = pos;
         makeMove(newPos, move);
+        leafNodeCount++;
         int score = -quiescenceSearch(newPos, -beta, -alpha, 
                         (color == Move::Color::WHITE ? Move::Color::BLACK : Move::Color::WHITE), ply + 1);
         undoMove(newPos, move);

@@ -10,92 +10,93 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
     while (ourPiecesCopy) {
         int square = popLSB(ourPiecesCopy); // Extract one piece at a time
 
+        // Pawn moves
         if ((pos.whitePawns | pos.blackPawns) & (1ULL << square)) {
             uint64_t pawnMoves = getPawnMoves(square, color, pos.occupiedSquares, pos);
             while (pawnMoves) {
                 int targetSquare = popLSB(pawnMoves);
-                // Pawn capturing logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::PAWN, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::PAWN, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
+        // Knight moves
         else if ((pos.whiteKnights | pos.blackKnights) & (1ULL << square)) {
             uint64_t knightMoves = getKnightMoves(square);
             while (knightMoves) {
                 int targetSquare = popLSB(knightMoves);
-                // Knight move logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::KNIGHT, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::KNIGHT, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
+        // Bishop moves
         else if ((pos.whiteBishops | pos.blackBishops) & (1ULL << square)) {
             uint64_t bishopMoves = getBishopMoves(square, pos.occupiedSquares);
             while (bishopMoves) {
                 int targetSquare = popLSB(bishopMoves);
-                // Bishop move logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::BISHOP, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::BISHOP, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
+        // Rook moves
         else if ((pos.whiteRooks | pos.blackRooks) & (1ULL << square)) {
             uint64_t rookMoves = getRookMoves(square, pos.occupiedSquares);
             while (rookMoves) {
                 int targetSquare = popLSB(rookMoves);
-                // Rook move logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::ROOK, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::ROOK, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
+        // Queen moves
         else if ((pos.whiteQueens | pos.blackQueens) & (1ULL << square)) {
             uint64_t queenMoves = getQueenMoves(square, pos.occupiedSquares);
             while (queenMoves) {
                 int targetSquare = popLSB(queenMoves);
-                // Queen move logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::QUEEN, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::QUEEN, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
+        // King moves
         else if ((pos.whiteKing | pos.blackKing) & (1ULL << square)) {
             uint64_t kingMoves = getKingMoves(square);
             while (kingMoves) {
                 int targetSquare = popLSB(kingMoves);
-                // King move logic (can capture enemy pieces)
-                if ((enemyPieces & (1ULL << targetSquare)) || !(ourPieces & (1ULL << targetSquare))) {
-                    moveList.push_back(Move(square, targetSquare, false, Move::PieceType::KING, color, false));
+                bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
+                if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
+                    Move move(square, targetSquare, false, Move::PieceType::KING, color, isCapture);
+                    if (!wouldLeaveKingInCheck(pos, move)) {
+                        moveList.push_back(move);
+                    }
                 }
             }
         }
     }
 
     return moveList;
-}
-
-uint64_t getRookMoves(int square, uint64_t occupied) {
-    MagicEntry& entry = rookTable[square];
-    uint64_t blockers = occupied & entry.mask;
-    uint64_t index = ((blockers * entry.magic) >> entry.shift);
-    if (index >= entry.attacks.size()) {
-        return 0ULL;  // Return empty bitboard if index is out of bounds
-    }
-    return entry.attacks[index];
-}
-
-uint64_t getBishopMoves(int square, uint64_t occupied) {
-    MagicEntry& entry = bishopTable[square];
-    uint64_t blockers = occupied & entry.mask;
-    uint64_t index = ((blockers * entry.magic) >> entry.shift);
-    
-    index &= (entry.attacks.size() - 1);
-    // Safety check for array bounds
-    if (index >= entry.attacks.size()) {
-        return 0ULL;  // Return empty bitboard if index is out of bounds
-    }
-    return entry.attacks[index];
 }
 
 uint64_t getPawnMoves(int square, Move::Color color, uint64_t occupied, const Position& pos) {
@@ -147,19 +148,6 @@ uint64_t getPawnMoves(int square, Move::Color color, uint64_t occupied, const Po
     }
 
     return moves;
-}
-
-uint64_t getKnightMoves(int square) {
-    return KNIGHT_ATTACKS[square];  // Return pre-calculated knight attacks
-}
-
-uint64_t getKingMoves(int square) {
-    return KING_ATTACKS[square];  // Return pre-calculated king attacks
-}
-
-uint64_t getQueenMoves(int square, uint64_t occupied) {
-    // Queen moves are combination of rook and bishop moves
-    return getRookMoves(square, occupied) | getBishopMoves(square, occupied);
 }
 
 uint64_t getCastlingMoves(Move::Color color, uint64_t occupied, const Position& pos) {
@@ -262,9 +250,18 @@ std::vector<Move> generateCaptures(const Position& pos, Move::Color color) {
     return captures;
 }
 
+
 bool isInCheck(const Position& pos, Move::Color color) {
     uint64_t kingBB = (color == Move::Color::WHITE) ? pos.whiteKing : pos.blackKing;
     int kingSquare = __builtin_ctzll(kingBB);
     return isSquareAttacked(kingSquare, color == Move::Color::WHITE ? 
         Move::Color::BLACK : Move::Color::WHITE, pos);
+}
+
+bool wouldLeaveKingInCheck(const Position& pos, const Move& move) {
+    Position tempPos = pos;
+    makeMove(tempPos, move);
+    bool inCheck = isInCheck(tempPos, move.color);  // Check if the move leaves the king in check
+    undoMove(tempPos, move);
+    return inCheck;
 }

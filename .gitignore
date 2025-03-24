@@ -8,5 +8,5 @@
 *.dll
 # ignore IDE configuration files
 .vscode/
-# ignore .o files  (are in obj file folder)
-chess_engine/obj/
+# ignore .o files
+out/

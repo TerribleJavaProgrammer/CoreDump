@@ -12,7 +12,7 @@ JNIEXPORT jboolean JNICALL Java_EngineInteraction_EngineInteraction_initGame
     initializeMagicBitboards();
     if (!playerIsWhiteBool) {
         std::cout << "player not white" << std::endl;
-        currPosition.updatePosition(findBestMove(Move::Color::WHITE, 50, 5));
+        makeMove(currPosition, findBestMove(Move::Color::WHITE, 50, 5));
     }
     return JNI_TRUE;
 }
@@ -43,7 +43,7 @@ JNIEXPORT jboolean JNICALL Java_EngineInteraction_EngineInteraction_makeMove
         if (move.isPromotion) {
             move.promotionPiece = Move::PieceType::QUEEN;
         }
-        currPosition.updatePosition(move);
+        makeMove(currPosition, move);
         return JNI_TRUE;
     }
 }
@@ -60,7 +60,7 @@ JNIEXPORT jboolean JNICALL Java_EngineInteraction_EngineInteraction_botMove
     if (botIsBlack == JNI_FALSE) {
         botColor = Move::Color::WHITE;
     }
-    currPosition.updatePosition(findBestMove(botColor, 50, 5));
+    makeMove(currPosition, findBestMove(botColor, 50, 5));
     return JNI_TRUE;
 }
 

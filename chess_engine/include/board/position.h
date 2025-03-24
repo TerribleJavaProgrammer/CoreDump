@@ -27,7 +27,6 @@ struct Position {
 
     uint64_t computeHash() const;  // Function prototype
     void initializePosition(); // Function prototype
-    void updatePosition(const Move& move); // Function prototype
     Position getPosition(); // Function prototype
     std::string displayPosition(); // Function prototype
 };

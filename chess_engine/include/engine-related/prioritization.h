@@ -12,6 +12,5 @@
 #include "extraHeuristics/killerMoves.h"
 
 int sortMoves(std::vector<Move>& moves, const Position& pos, int ply, Move::Color color);
-int getMovePriority(const Move& move, const Position& pos);
 
 #endif // PRIORITIZATION_H

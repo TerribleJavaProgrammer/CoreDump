@@ -34,18 +34,21 @@ void makeMove(Position& pos, const Move& move) {
 
     // Handle captures
     if (move.isCapture) {
+        uint64_t captureBB = 1ULL << move.toSquare;
         if (isWhite) {
-            pos.blackPawns &= ~toBB;
-            pos.blackKnights &= ~toBB;
-            pos.blackBishops &= ~toBB;
-            pos.blackRooks &= ~toBB;
-            pos.blackQueens &= ~toBB;
+            if (pos.blackPawns & captureBB) { pos.blackPawns &= ~captureBB; }
+            else if (pos.blackKnights & captureBB) { pos.blackKnights &= ~captureBB; }
+            else if (pos.blackBishops & captureBB) { pos.blackBishops &= ~captureBB; }
+            else if (pos.blackRooks & captureBB) { pos.blackRooks &= ~captureBB; }
+            else if (pos.blackQueens & captureBB) { pos.blackQueens &= ~captureBB; }
+            else if (pos.blackKing & captureBB) { pos.blackKing &= ~captureBB; }
         } else {
-            pos.whitePawns &= ~toBB;
-            pos.whiteKnights &= ~toBB;
-            pos.whiteBishops &= ~toBB;
-            pos.whiteRooks &= ~toBB;
-            pos.whiteQueens &= ~toBB;
+            if (pos.whitePawns & captureBB) { pos.whitePawns &= ~captureBB; }
+            else if (pos.whiteKnights & captureBB) { pos.whiteKnights &= ~captureBB; }
+            else if (pos.whiteBishops & captureBB) { pos.whiteBishops &= ~captureBB; }
+            else if (pos.whiteRooks & captureBB) { pos.whiteRooks &= ~captureBB; }
+            else if (pos.whiteQueens & captureBB) { pos.whiteQueens &= ~captureBB; }
+            else if (pos.whiteKing & captureBB) { pos.whiteKing &= ~captureBB; }
         }
     }
 
@@ -103,18 +106,21 @@ void undoMove(Position& pos, const Move& move) {
 
     // Restore captured piece
     if (move.isCapture) {
+        uint64_t captureBB = 1ULL << move.toSquare;
         if (isWhite) {
-            pos.blackPawns |= toBB;
-            pos.blackKnights |= toBB;
-            pos.blackBishops |= toBB;
-            pos.blackRooks |= toBB;
-            pos.blackQueens |= toBB;
+            if (pos.blackPawns & captureBB) { pos.blackPawns |= captureBB; }
+            else if (pos.blackKnights & captureBB) { pos.blackKnights |= captureBB; }
+            else if (pos.blackBishops & captureBB) { pos.blackBishops |= captureBB; }
+            else if (pos.blackRooks & captureBB) { pos.blackRooks |= captureBB; }
+            else if (pos.blackQueens & captureBB) { pos.blackQueens |= captureBB; }
+            else if (pos.blackKing & captureBB) { pos.blackKing |= captureBB; }
         } else {
-            pos.whitePawns |= toBB;
-            pos.whiteKnights |= toBB;
-            pos.whiteBishops |= toBB;
-            pos.whiteRooks |= toBB;
-            pos.whiteQueens |= toBB;
+            if (pos.whitePawns & captureBB) { pos.whitePawns |= captureBB; }
+            else if (pos.whiteKnights & captureBB) { pos.whiteKnights |= captureBB; }
+            else if (pos.whiteBishops & captureBB) { pos.whiteBishops |= captureBB; }
+            else if (pos.whiteRooks & captureBB) { pos.whiteRooks |= captureBB; }
+            else if (pos.whiteQueens & captureBB) { pos.whiteQueens |= captureBB; }
+            else if (pos.whiteKing & captureBB) { pos.whiteKing |= captureBB; }
         }
     }
 

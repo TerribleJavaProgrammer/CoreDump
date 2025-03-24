@@ -126,7 +126,7 @@ inline int getPieceValue(Move::PieceType piece) {
     }
 }
 
-inline bool SEE(const Position& pos, Move move) {
+inline bool SEE(Move move) {
     int capturedValue = getPieceValue(move.capturedPieceType);
     int attackerValue = getPieceValue(move.pieceType);
     return attackerValue <= capturedValue;  // Allow only good captures

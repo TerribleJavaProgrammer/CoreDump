@@ -3,6 +3,9 @@
 
 #include <mutex>
 #include "board/position.h"
+#include "board/board.h"
+
+// Barely used. To prune.
 
 class ThreadSafePosition {
     private:
@@ -15,18 +18,6 @@ class ThreadSafePosition {
         Position get() const {
             std::lock_guard<std::mutex> lock(mutex);
             return pos;
-        }
-        
-        void update(const Position& newPos) {
-            std::lock_guard<std::mutex> lock(mutex);
-            pos = newPos;
-        }
-        
-        void makeMove(const Move& move) {
-            std::lock_guard<std::mutex> lock(mutex);
-            Position newPos = pos.getPosition();
-            newPos.updatePosition(move);
-            pos = newPos;
         }
 };
 

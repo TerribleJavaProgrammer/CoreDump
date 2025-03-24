@@ -31,10 +31,11 @@ int main() {
             std::cout << "CHECK!\n";
         }
 
-        currPosition.displayPosition();
+        std::cout << currPosition.displayPosition() << std::endl;
 
         // Determine if it's player's turn
         bool isPlayerTurn = (currentPlayer == Move::Color::WHITE) == playerIsWhite;
+        isPlayerTurn = isPlayerTurn && false;
 
         if (isPlayerTurn) {
             // Human player's turn
@@ -94,13 +95,13 @@ int main() {
                 }
             }
 
-            currPosition.updatePosition(move);
+            makeMove(currPosition, move);
         } else {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
             auto start = std::chrono::high_resolution_clock::now();
             Move computerMove;
-            computerMove = findBestMove(currentPlayer, 50, 5); // Search n ply deep
+            computerMove = findBestMove(currentPlayer, 7, 10); // Search n ply deep
             auto end = std::chrono::high_resolution_clock::now();
             double timeTaken = std::chrono::duration<double>(end - start).count();
             std::cout << "(Time taken: " << timeTaken << "s)\n";
@@ -113,7 +114,7 @@ int main() {
                 
             std::cout << "Computer plays: " << moveStr << std::endl;
             
-            currPosition.updatePosition(computerMove);
+            makeMove(currPosition, computerMove);
         }
 
         // Check for game end conditions
