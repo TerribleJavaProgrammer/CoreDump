@@ -11,7 +11,7 @@ uint64_t perft(const Position& pos, int depth, Move::Color color) {
 
     for (const Move& move : moves) {
         Position newPos = pos;
-        newPos.updatePosition(move);
+        makeMove(newPos, move);
         nodes += perft(newPos, depth - 1, (color == Move::Color::WHITE) ? Move::Color::BLACK : Move::Color::WHITE);
     }
     return nodes;
@@ -45,7 +45,7 @@ uint64_t parallelPerft(const Position& pos, int depth, Move::Color color, int nu
             uint64_t localNodes = 0;
             for (size_t j = start; j < end; ++j) {
                 Position newPos = pos;
-                newPos.updatePosition(moves[j]);
+                makeMove(newPos, moves[j]);
                 uint64_t nodes = perft(newPos, depth - 1, 
                     (color == Move::Color::WHITE) ? Move::Color::BLACK : Move::Color::WHITE);
                 
