@@ -1,10 +1,24 @@
-# Compiler settings
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
-INCLUDES = -Ichess_engine/include
+# Detect the operating system
+ifeq ($(OS),Windows_NT)
+    CXX = g++
+    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+    INCLUDES = -Ichess_engine/include
+    RM = del /Q
+    RMDIR = rmdir /S /Q
+    MKDIR = mkdir
+    EXT = .exe
+else
+    CXX = g++
+    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+    INCLUDES = -Ichess_engine/include
+    RM = rm -rf
+    RMDIR = rm -rf
+    MKDIR = mkdir -p
+    EXT = 
+endif
 
 # Output binary
-TARGET = out/chess
+TARGET = out/chess$(EXT)
 
 # Output directory
 OUT_DIR = out
@@ -33,11 +47,11 @@ MAIN_OBJ_FILE = $(OUT_DIR)/API.o
 OBJ_FILES = $(MAIN_OBJ_FILE) $(SRC_OBJ_FILES)
 
 # Ensure output directory exists
-$(shell mkdir $(OUT_DIR) 2>nul)
-$(shell mkdir $(OUT_DIR)\board 2>nul)
-$(shell mkdir $(OUT_DIR)\engine-related 2>nul)
-$(shell mkdir $(OUT_DIR)\extraHeuristics 2>nul)
-$(shell mkdir $(OUT_DIR)\move 2>nul)
+$(shell $(MKDIR) $(OUT_DIR) 2>nul)
+$(shell $(MKDIR) $(OUT_DIR)/board 2>nul)
+$(shell $(MKDIR) $(OUT_DIR)/engine-related 2>nul)
+$(shell $(MKDIR) $(OUT_DIR)/extraHeuristics 2>nul)
+$(shell $(MKDIR) $(OUT_DIR)/move 2>nul)
 
 # Default target - build and run the entire project (GUI alongside API)
 all: build_api run_gui
@@ -65,8 +79,8 @@ run_gui: build_api
 
 # Clean build files
 clean:
-	@if exist $(OUT_DIR) rmdir /S /Q $(OUT_DIR)
-	@del GUI\API\__pycache__\*.pyc
+	@if exist $(OUT_DIR) $(RMDIR) $(OUT_DIR)
+	@if exist GUI\API\__pycache__ $(RM) GUI\API\__pycache__\*.pyc
 
 # Phony targets
 .PHONY: all build_api run_gui clean
