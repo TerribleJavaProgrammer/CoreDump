@@ -6,6 +6,8 @@
 *.exe
 # ignore .dll files
 *.dll
+# ignore all .class files
+*.class
 # ignore IDE configuration files
 .vscode/
 # ignore .o files
