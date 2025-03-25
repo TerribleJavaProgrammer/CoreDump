@@ -1,10 +1,32 @@
-# Compiler settings
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
-INCLUDES = -Ichess_engine/include
+# Detect the operating system
+ifeq ($(OS),Windows_NT)
+    CXX = g++
+    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+    INCLUDES = -Ichess_engine/include
+    RM = del /Q
+    RMDIR = rmdir /S /Q
+    MKDIR = mkdir
+    EXT = .exe
+    NULL_DEVICE = nul
+    MKDIR = mkdir
+    RM_DIR = rmdir /S /Q
+    RM_FILE = del
+else
+    CXX = g++
+    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+    INCLUDES = -Ichess_engine/include
+    RM = rm -rf
+    RMDIR = rm -rf
+    MKDIR = mkdir -p
+    EXT = 
+    NULL_DEVICE = /dev/null
+    MKDIR = mkdir -p
+    RM_DIR = rm -rf
+    RM_FILE = rm -f
+endif
 
 # Output binary
-TARGET = out/chess
+TARGET = out/chess$(EXT)
 
 # Output directory
 OUT_DIR = out
@@ -31,19 +53,6 @@ MAIN_OBJ_FILE = $(OUT_DIR)/API.o
 
 # All object files
 OBJ_FILES = $(MAIN_OBJ_FILE) $(SRC_OBJ_FILES)
-
-# Detect OS
-ifeq ($(OS),Windows_NT)
-    NULL_DEVICE = nul
-    MKDIR = mkdir
-    RM_DIR = rmdir /S /Q
-    RM_FILE = del
-else
-    NULL_DEVICE = /dev/null
-    MKDIR = mkdir -p
-    RM_DIR = rm -rf
-    RM_FILE = rm -f
-endif
 
 # Ensure output directory exists
 $(shell $(MKDIR) $(OUT_DIR) 2>$(NULL_DEVICE))
@@ -80,7 +89,6 @@ run_gui: build_api
 clean:
 	@$(RM_DIR) $(OUT_DIR) 2>/dev/null || true
 	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>/dev/null || true
-
 
 # Phony targets
 .PHONY: all build_api run_gui clean
