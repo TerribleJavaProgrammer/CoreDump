@@ -25,6 +25,6 @@
 #include "engine-related/prioritization.h"
 #include "engine-related/evaluation.h"
 
-Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds);
+Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds, bool debug);
 
 #endif // ENGINE_H

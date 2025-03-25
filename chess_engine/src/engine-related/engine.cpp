@@ -1,6 +1,6 @@
 #include "engine-related/engine.h"
 
-Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
+Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds, bool debug) {
     nodeCount = 0;
     leafNodeCount = 0;
     ThreadSafePosition threadPos(currPosition.getPosition());
@@ -8,14 +8,14 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
 
     std::vector<Move> rootMoves = generateMoves(initialPos, color);
     sortMoves(rootMoves, initialPos, 0, color);
-
-    std::cout << "============================\n";
-    std::cout << "Starting Search\n";
-    std::cout << "Root Moves: " << rootMoves.size() << "\n";
-    std::cout << "Max Depth: " << maxDepth << "\n";
-    std::cout << "Threads: " << std::thread::hardware_concurrency() << "\n";
-    std::cout << "============================\n";
-
+    if (debug) {
+        std::cout << "============================\n";
+        std::cout << "Starting Search\n";
+        std::cout << "Root Moves: " << rootMoves.size() << "\n";
+        std::cout << "Max Depth: " << maxDepth << "\n";
+        std::cout << "Threads: " << std::thread::hardware_concurrency() << "\n";
+        std::cout << "============================\n";
+    }
     struct ThreadResult {
         std::atomic<int> score{-KING_VALUE * 2};
         Move bestMove;
@@ -97,17 +97,15 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
         double elapsedTime = std::chrono::duration<double>(
             std::chrono::high_resolution_clock::now() - startTime
         ).count();
-        
-        std::cout << ">> Current Depth: " << depth
-                  << " | Best Move: " << bestMoveSoFar.fromSquare 
-                  << " -> " << bestMoveSoFar.toSquare
-                  << " | Score: " << result->score
-                  << " | Node Count: " << nodeCount
-                  << " | Leaf Node Count: " << leafNodeCount
-                  << " | Time Elapsed: " << elapsedTime << "s\n";
-
+        if (debug) std::cout << ">> Current Depth: " << depth
+                    << " | Best Move: " << bestMoveSoFar.fromSquare 
+                    << " -> " << bestMoveSoFar.toSquare
+                    << " | Score: " << result->score
+                    << " | Node Count: " << nodeCount
+                    << " | Leaf Node Count: " << leafNodeCount
+                    << " | Time Elapsed: " << elapsedTime << "s\n";
         if (elapsedTime >= timeLimitSeconds) {
-            std::cout << "Time limit reached. Stopping search at depth " << depth << ".\n";
+            if (debug) std::cout << "Time limit reached. Stopping search at depth " << depth << ".\n";
             break;
         }
     }
@@ -117,17 +115,17 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds) {
     ).count();
     double nps = nodeCount / totalTime;
     double lnps = leafNodeCount / totalTime;
-
-    std::cout << "============================\n";
-    std::cout << "Search Completed!\n";
-    std::cout << "Total Time: " << totalTime << "s\n";
-    std::cout << "Nodes Searched: " << nodeCount << "\n";
-    std::cout << "Nodes Per Second (NPS): " << nps << "\n";
-    std::cout << "Leaf Nodes Evaluated: " << leafNodeCount << "\n";
-    std::cout << "Leaf Nodes Per Second (LNPS): " << lnps << "\n";
-    std::cout << "Final Best Move: " << bestMoveSoFar.fromSquare << " -> " 
-              << bestMoveSoFar.toSquare << " (Score: " << result->score << ")\n";
-    std::cout << "============================\n";
-
+    if (debug) {
+        std::cout << "============================\n";
+        std::cout << "Search Completed!\n";
+        std::cout << "Total Time: " << totalTime << "s\n";
+        std::cout << "Nodes Searched: " << nodeCount << "\n";
+        std::cout << "Nodes Per Second (NPS): " << nps << "\n";
+        std::cout << "Leaf Nodes Evaluated: " << leafNodeCount << "\n";
+        std::cout << "Leaf Nodes Per Second (LNPS): " << lnps << "\n";
+        std::cout << "Final Best Move: " << bestMoveSoFar.fromSquare << " -> " 
+                << bestMoveSoFar.toSquare << " (Score: " << result->score << ")\n";
+        std::cout << "============================\n";
+    }
     return bestMoveSoFar;
 }

@@ -106,7 +106,7 @@ int main() {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
             auto start = std::chrono::high_resolution_clock::now();
-            move = findBestMove(currentPlayer, 5, 100); // Search n ply deep
+            move = findBestMove(currentPlayer, 5, 100, true); // Search n ply deep
             auto end = std::chrono::high_resolution_clock::now();
             double timeTaken = std::chrono::duration<double>(end - start).count();
             std::cout << "(Time taken: " << timeTaken << "s)\n";

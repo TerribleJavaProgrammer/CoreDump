@@ -117,18 +117,18 @@ std::string Position::displayPosition() {
         // Loop through files from left (a) to right (h)
         for (int file = 0; file < 8; ++file) {
             int square = rank * 8 + file;  // Convert rank/file to square index
-            if (getBit(whitePawns, square)) returnable.append("♟ ");        // White pawn
-            else if (getBit(whiteKnights, square)) returnable.append("♞ ");  // White knight
-            else if (getBit(whiteBishops, square)) returnable.append("♝ ");  // White bishop
-            else if (getBit(whiteRooks, square)) returnable.append("♜ ");    // White rook
-            else if (getBit(whiteQueens, square)) returnable.append("♛ ");   // White queen
-            else if (getBit(whiteKing, square)) returnable.append("♚ ");     // White king
-            else if (getBit(blackPawns, square)) returnable.append("♙ ");    // Black pawn
-            else if (getBit(blackKnights, square)) returnable.append("♘ ");  // Black knight
-            else if (getBit(blackBishops, square)) returnable.append("♗ ");  // Black bishop
-            else if (getBit(blackRooks, square)) returnable.append("♖ ");    // Black rook
-            else if (getBit(blackQueens, square)) returnable.append("♕ ");   // Black queen
-            else if (getBit(blackKing, square)) returnable.append("♔ ");     // Black king
+            if (getBit(whitePawns, square)) returnable.append("P ");        // White pawn
+            else if (getBit(whiteKnights, square)) returnable.append("N ");  // White knight
+            else if (getBit(whiteBishops, square)) returnable.append("B ");  // White bishop
+            else if (getBit(whiteRooks, square)) returnable.append("R ");    // White rook
+            else if (getBit(whiteQueens, square)) returnable.append("Q ");   // White queen
+            else if (getBit(whiteKing, square)) returnable.append("K ");     // White king
+            else if (getBit(blackPawns, square)) returnable.append("p ");    // Black pawn
+            else if (getBit(blackKnights, square)) returnable.append("n ");  // Black knight
+            else if (getBit(blackBishops, square)) returnable.append("b ");  // Black bishop
+            else if (getBit(blackRooks, square)) returnable.append("r ");    // Black rook
+            else if (getBit(blackQueens, square)) returnable.append("q ");   // Black queen
+            else if (getBit(blackKing, square)) returnable.append("k ");     // Black king
             else returnable.append(". ");                                    // Empty square
         }
         returnable.append("/");
