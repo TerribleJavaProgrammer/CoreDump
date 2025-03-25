@@ -250,7 +250,6 @@ std::vector<Move> generateCaptures(const Position& pos, Move::Color color) {
     return captures;
 }
 
-
 bool isInCheck(const Position& pos, Move::Color color) {
     uint64_t kingBB = (color == Move::Color::WHITE) ? pos.whiteKing : pos.blackKing;
     int kingSquare = __builtin_ctzll(kingBB);

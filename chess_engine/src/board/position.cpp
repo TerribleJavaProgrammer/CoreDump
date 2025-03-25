@@ -131,7 +131,7 @@ std::string Position::displayPosition() {
             else if (getBit(blackKing, square)) returnable.append("♔ ");     // Black king
             else returnable.append(". ");                                    // Empty square
         }
-        returnable.append("\n");
+        returnable.append("/");
     }
     return returnable;
 }

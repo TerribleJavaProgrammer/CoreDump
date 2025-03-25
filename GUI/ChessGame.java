@@ -17,7 +17,7 @@ public class ChessGame extends JPanel {
         updateBoard();
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
-                int file = e.getX() / TILE_SIZE;
+                int file = 8 - (e.getX() / TILE_SIZE);
                 int rank = 7 - (e.getY() / TILE_SIZE);
                 int square = rank * 8 + file;
                 handleMove(square);
@@ -31,22 +31,17 @@ public class ChessGame extends JPanel {
         } else {
             int fromSquare = selectedSquare;
             int toSquare = square;
-            boolean success = engine.makeMove(fromSquare, toSquare, isWhite);
+            boolean success = engine.makeMove(64 - fromSquare, 64 - toSquare, !isWhite);
             System.out.println("Move attempted: " + fromSquare + " -> " + toSquare + " | Success: " + success);
-            
             if (success) {
-                updateBoard(); // Update after player's move
-                
-                if (!engine.isCheckMate() && !engine.isStaleMate()) {
-                    boolean botSuccess = engine.botMove(!isWhite);
-                    System.out.println("Bot move success: " + botSuccess);
-                    updateBoard(); // Update after bot's move
-                }
+                updateBoard();
+                selectedSquare = -1;
+                engine.botMove(!isWhite);
+                updateBoard();
             } else {
                 System.out.println("Invalid move, resetting selection.");
+                selectedSquare = -1;
             }
-            
-            selectedSquare = -1;
         }
     }
     
@@ -86,7 +81,7 @@ public class ChessGame extends JPanel {
     }
     
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Chess Game");
+        JFrame frame = new JFrame("Chess GUI");
         ChessGame chessPanel = new ChessGame();
         frame.add(chessPanel);
         frame.setSize(TILE_SIZE * BOARD_SIZE, TILE_SIZE * BOARD_SIZE);
