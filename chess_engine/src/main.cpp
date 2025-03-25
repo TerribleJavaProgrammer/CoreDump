@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <sstream>
 
 int main() {
     // Initialize the game state
@@ -14,6 +16,8 @@ int main() {
     bool gameOver = false;
     Move::Color currentPlayer = Move::Color::WHITE;  // White moves first
     bool playerIsWhite = true;    // Default: human plays white
+    int fullmoveCounter = 0;
+    std::ostringstream pgn;
     
     // Let player choose their color
     std::cout << "Play as (w)hite or (b)lack? ";
@@ -30,13 +34,15 @@ int main() {
         if (isInCheck(currPosition, currentPlayer)) {
             std::cout << "CHECK!\n";
         }
-
+        
+        bool currentPlayerIsWhite = currentPlayer == Move::Color::WHITE;
         std::cout << currPosition.displayPosition() << std::endl;
-        std::cout << currPosition.getFen(currentPlayer == Move::Color::WHITE, 0, 0, "", "") << std::endl;
+        std::cout << currPosition.getFen(currentPlayerIsWhite, 0, fullmoveCounter, "", "") << std::endl;
 
         // Determine if it's player's turn
-        bool isPlayerTurn = (currentPlayer == Move::Color::WHITE) == playerIsWhite;
+        bool isPlayerTurn = currentPlayerIsWhite == playerIsWhite;
         isPlayerTurn = isPlayerTurn && false;
+        Move move;
 
         if (isPlayerTurn) {
             // Human player's turn
@@ -60,7 +66,6 @@ int main() {
             }
 
             // Create and validate move
-            Move move;
             move.fromSquare = Move::fromAlgebraic(input[0], input[1]);
             move.toSquare = Move::fromAlgebraic(input[3], input[4]);
             move.color = currentPlayer;
@@ -101,21 +106,20 @@ int main() {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
             auto start = std::chrono::high_resolution_clock::now();
-            Move computerMove;
-            computerMove = findBestMove(currentPlayer, 7, 10); // Search n ply deep
+            move = findBestMove(currentPlayer, 5, 100); // Search n ply deep
             auto end = std::chrono::high_resolution_clock::now();
             double timeTaken = std::chrono::duration<double>(end - start).count();
             std::cout << "(Time taken: " << timeTaken << "s)\n";
             // Convert move to algebraic notation for display
             std::string moveStr = 
-                std::string(1, 'a' + (computerMove.fromSquare % 8)) +
-                std::string(1, '1' + (computerMove.fromSquare / 8)) + " " +
-                std::string(1, 'a' + (computerMove.toSquare % 8)) +
-                std::string(1, '1' + (computerMove.toSquare / 8));
+                std::string(1, 'a' + (move.fromSquare % 8)) +
+                std::string(1, '1' + (move.fromSquare / 8)) + " " +
+                std::string(1, 'a' + (move.toSquare % 8)) +
+                std::string(1, '1' + (move.toSquare / 8));
                 
             std::cout << "Computer plays: " << moveStr << std::endl;
             
-            makeMove(currPosition, computerMove);
+            makeMove(currPosition, move);
         }
 
         // Check for game end conditions
@@ -132,11 +136,22 @@ int main() {
             continue;
         }
 
+        // update pgn
+        if (currentPlayerIsWhite) {
+            fullmoveCounter += 1;
+            pgn << fullmoveCounter;
+            pgn << '.';
+        }
+        pgn << move.getPgn();
+        pgn << ' ';
+
         // Switch to next player
         currentPlayer = (currentPlayer == Move::Color::WHITE) ? 
             Move::Color::BLACK : Move::Color::WHITE;
     }
 
     std::cout << "\nGame ended.\n";
+    std::cout << "PGN:\n";
+    std::cout << pgn.str() << std::endl;
     return 0;
 }

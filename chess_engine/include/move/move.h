@@ -3,6 +3,8 @@
 
 #include <string>
 #include <stdint.h>
+#include <iostream>
+#include <sstream>
 
 struct Move {
     int fromSquare;     // Source square (0-63)
@@ -12,6 +14,25 @@ struct Move {
     // Enum for piece types
     enum class PieceType { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
     PieceType pieceType;  // Type of piece being moved
+
+    inline static char piecePgn(PieceType piece) {
+        switch (piece) {
+            case PieceType::PAWN:
+                return 'P';
+            case PieceType::KNIGHT:
+                return 'N';
+            case PieceType::BISHOP:
+                return 'B';
+            case PieceType::ROOK:
+                return 'R';
+            case PieceType::QUEEN:
+                return 'Q';
+            case PieceType::KING:
+                return 'K';
+            default:
+                return '!';
+        }
+    }
 
     // Enum for piece colors
     enum class Color { WHITE, BLACK };
@@ -37,6 +58,37 @@ struct Move {
     uint8_t prevCastlingRights; // Bitmask of castling rights before move
 
     int prevKingSquare;  // Stores king's position before the move
+    
+    std::string getPgn() {
+        // {piece}{from}{to}
+        // promotion is {normal}={new piece}
+        // check appends +
+        // mate appends # instead
+        std::ostringstream pgn;
+        if (castlingType == CastlingType::NONE) {
+            // if black, offset to achieve lower case
+            char piece = piecePgn(pieceType);
+            if (color == Color::BLACK) {
+                piece += 32;
+            }
+            pgn << piece;
+            pgn << toAlgebraic(fromSquare);
+            if (isCapture) {
+                pgn << 'x';
+            }
+            pgn << toAlgebraic(toSquare);
+            if (isPromotion) {
+                pgn << '=';
+                pgn << piecePgn(promotionPiece);
+            }
+        } else if (castlingType == CastlingType::KINGSIDE) {
+            pgn << "O-O";
+        } else {
+            pgn << "O-O-O";
+        }
+        // TODO add check and mate
+        return pgn.str();
+    }
 
     // Constructor
     Move(int from, int to, bool capture, PieceType type, Color col, bool castling, 
