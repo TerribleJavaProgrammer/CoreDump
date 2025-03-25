@@ -3,21 +3,15 @@ ifeq ($(OS),Windows_NT)
     CXX = g++
     CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
     INCLUDES = -Ichess_engine/include
-    RM = del /Q
-    RMDIR = rmdir /S /Q
-    MKDIR = mkdir
     EXT = .exe
     NULL_DEVICE = nul
     MKDIR = mkdir
     RM_DIR = rmdir /S /Q
-    RM_FILE = del
+    RM_FILE = del /Q
 else
     CXX = g++
     CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
     INCLUDES = -Ichess_engine/include
-    RM = rm -rf
-    RMDIR = rm -rf
-    MKDIR = mkdir -p
     EXT = 
     NULL_DEVICE = /dev/null
     MKDIR = mkdir -p
@@ -89,6 +83,7 @@ run_gui: build_api
 clean:
 	@$(RM_DIR) $(OUT_DIR) 2>/dev/null || true
 	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>/dev/null || true
+	@echo "Cleaned build and cache."
 
 # Phony targets
 .PHONY: all build_api run_gui clean
