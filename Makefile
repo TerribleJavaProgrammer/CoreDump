@@ -77,7 +77,7 @@ $(OUT_DIR)/%.o: $(SRC_DIR)/%.cpp
 # Task 2: Run the GUI after building the API
 run_gui: build_api
 	@echo "Running Chess GUI..."
-	@python3 GUI/gui.py
+	@python GUI/gui.py
 
 # Clean build files
 clean:
