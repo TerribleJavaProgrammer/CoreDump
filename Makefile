@@ -51,11 +51,11 @@ MAIN_OBJ_FILE = $(OUT_DIR)/API.o
 OBJ_FILES = $(MAIN_OBJ_FILE) $(SRC_OBJ_FILES)
 
 # Ensure output directory exists
-$(shell mkdir $(OUT_DIR) 2> $(NULL_DEVICE))
-$(shell mkdir $(OUT_DIR)\board 2> $(NULL_DEVICE))
-$(shell mkdir $(OUT_DIR)\engine-related 2> $(NULL_DEVICE))
-$(shell mkdir $(OUT_DIR)\extraHeuristics 2> $(NULL_DEVICE))
-$(shell mkdir $(OUT_DIR)\move 2> $(NULL_DEVICE))
+$(shell $(MKDIR) $(OUT_DIR) 2> $(NULL_DEVICE))
+$(shell $(MKDIR) $(OUT_DIR)/board 2> $(NULL_DEVICE))
+$(shell $(MKDIR) $(OUT_DIR)/engine-related 2> $(NULL_DEVICE))
+$(shell $(MKDIR) $(OUT_DIR)/extraHeuristics 2> $(NULL_DEVICE))
+$(shell $(MKDIR) $(OUT_DIR)/move 2> $(NULL_DEVICE))
 
 # Default target - build and run the entire project (GUI alongside API)
 all: build_api run_gui
