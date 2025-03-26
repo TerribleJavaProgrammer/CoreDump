@@ -15,23 +15,6 @@ void makeMove(Position& pos, const Move& move) {
     uint64_t toBB = 1ULL << move.toSquare;
     bool isWhite = (move.color == Move::Color::WHITE);
 
-    // Remove piece from its original square and place it in the new one
-    if (isWhite) {
-        if (pos.whitePawns & fromBB) { pos.whitePawns &= ~fromBB; pos.whitePawns |= toBB; }
-        else if (pos.whiteKnights & fromBB) { pos.whiteKnights &= ~fromBB; pos.whiteKnights |= toBB; }
-        else if (pos.whiteBishops & fromBB) { pos.whiteBishops &= ~fromBB; pos.whiteBishops |= toBB; }
-        else if (pos.whiteRooks & fromBB) { pos.whiteRooks &= ~fromBB; pos.whiteRooks |= toBB; }
-        else if (pos.whiteQueens & fromBB) { pos.whiteQueens &= ~fromBB; pos.whiteQueens |= toBB; }
-        else if (pos.whiteKing & fromBB) { pos.whiteKing &= ~fromBB; pos.whiteKing |= toBB; }
-    } else {
-        if (pos.blackPawns & fromBB) { pos.blackPawns &= ~fromBB; pos.blackPawns |= toBB; }
-        else if (pos.blackKnights & fromBB) { pos.blackKnights &= ~fromBB; pos.blackKnights |= toBB; }
-        else if (pos.blackBishops & fromBB) { pos.blackBishops &= ~fromBB; pos.blackBishops |= toBB; }
-        else if (pos.blackRooks & fromBB) { pos.blackRooks &= ~fromBB; pos.blackRooks |= toBB; }
-        else if (pos.blackQueens & fromBB) { pos.blackQueens &= ~fromBB; pos.blackQueens |= toBB; }
-        else if (pos.blackKing & fromBB) { pos.blackKing &= ~fromBB; pos.blackKing |= toBB; }
-    }
-
     // Handle captures
     if (move.isCapture) {
         uint64_t captureBB = 1ULL << move.toSquare;
@@ -50,6 +33,23 @@ void makeMove(Position& pos, const Move& move) {
             else if (pos.whiteQueens & captureBB) { pos.whiteQueens &= ~captureBB; }
             else if (pos.whiteKing & captureBB) { pos.whiteKing &= ~captureBB; }
         }
+    }
+
+    // Remove piece from its original square and place it in the new one
+    if (isWhite) {
+        if (pos.whitePawns & fromBB) { pos.whitePawns &= ~fromBB; pos.whitePawns |= toBB; }
+        else if (pos.whiteKnights & fromBB) { pos.whiteKnights &= ~fromBB; pos.whiteKnights |= toBB; }
+        else if (pos.whiteBishops & fromBB) { pos.whiteBishops &= ~fromBB; pos.whiteBishops |= toBB; }
+        else if (pos.whiteRooks & fromBB) { pos.whiteRooks &= ~fromBB; pos.whiteRooks |= toBB; }
+        else if (pos.whiteQueens & fromBB) { pos.whiteQueens &= ~fromBB; pos.whiteQueens |= toBB; }
+        else if (pos.whiteKing & fromBB) { pos.whiteKing &= ~fromBB; pos.whiteKing |= toBB; }
+    } else {
+        if (pos.blackPawns & fromBB) { pos.blackPawns &= ~fromBB; pos.blackPawns |= toBB; }
+        else if (pos.blackKnights & fromBB) { pos.blackKnights &= ~fromBB; pos.blackKnights |= toBB; }
+        else if (pos.blackBishops & fromBB) { pos.blackBishops &= ~fromBB; pos.blackBishops |= toBB; }
+        else if (pos.blackRooks & fromBB) { pos.blackRooks &= ~fromBB; pos.blackRooks |= toBB; }
+        else if (pos.blackQueens & fromBB) { pos.blackQueens &= ~fromBB; pos.blackQueens |= toBB; }
+        else if (pos.blackKing & fromBB) { pos.blackKing &= ~fromBB; pos.blackKing |= toBB; }
     }
 
     // Handle castling (move the rook)

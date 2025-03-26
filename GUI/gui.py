@@ -60,6 +60,7 @@ class ChessBoard:
                     width = 5, 
                     height = 2, 
                     bg = bg_color, 
+                    font=('Arial', 28),  # <-- Setting font size to 14
                     command = lambda r = row, c = col: self.on_square_click(r, c)
                 )
                 square.grid(row = row, column = col)

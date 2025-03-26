@@ -22,7 +22,7 @@ else
 endif
 
 # Output binary
-TARGET = out/chess$(EXT)
+TARGET = out/chess
 
 # Output directory
 OUT_DIR = out
@@ -51,11 +51,11 @@ MAIN_OBJ_FILE = $(OUT_DIR)/API.o
 OBJ_FILES = $(MAIN_OBJ_FILE) $(SRC_OBJ_FILES)
 
 # Ensure output directory exists
-$(shell $(MKDIR) $(OUT_DIR) 2>$(NULL_DEVICE))
-$(shell $(MKDIR) $(OUT_DIR)/board 2>$(NULL_DEVICE))
-$(shell $(MKDIR) $(OUT_DIR)/engine-related 2>$(NULL_DEVICE))
-$(shell $(MKDIR) $(OUT_DIR)/extraHeuristics 2>$(NULL_DEVICE))
-$(shell $(MKDIR) $(OUT_DIR)/move 2>$(NULL_DEVICE))
+$(shell mkdir $(OUT_DIR) 2>nul)
+$(shell mkdir $(OUT_DIR)\board 2>nul)
+$(shell mkdir $(OUT_DIR)\engine-related 2>nul)
+$(shell mkdir $(OUT_DIR)\extraHeuristics 2>nul)
+$(shell mkdir $(OUT_DIR)\move 2>nul)
 
 # Default target - build and run the entire project (GUI alongside API)
 all: build_api run_gui
@@ -98,7 +98,6 @@ run_console: build_console
 clean:
 	@$(RM_DIR) $(OUT_DIR) 2>$(NULL_DEVICE) || $(TRUE_DEVICE)
 	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>$(NULL_DEVICE) || $(TRUE_DEVICE)
-	@echo "Cleaned build and cache."
 
 # Phony targets
 .PHONY: all build_api run_gui clean
