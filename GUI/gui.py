@@ -1,6 +1,7 @@
 import sys
 import os
 import tkinter as tk
+import platform
 from tkinter import messagebox, ttk
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'API'))
@@ -167,7 +168,12 @@ class ChessBoard:
 
 def main():
     root = tk.Tk()
-    game = ChessBoard(root, "out/chess.exe")
+    os_name = platform.system()
+    exe_path = "out/chess"
+    if (os_name == "Windows"):
+        exe_path += ".exe"
+    print("Using api at " + exe_path)
+    game = ChessBoard(root, exe_path)
     root.mainloop()
 
 if __name__ == "__main__":

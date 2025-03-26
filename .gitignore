@@ -12,3 +12,7 @@
 .vscode/
 # ignore .o files
 out/
+# ignore env files
+core_dump_env/
+# ignore pycache
+GUI/API/__pycache__/
