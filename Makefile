@@ -1,24 +1,24 @@
 # Detect the operating system
 ifeq ($(OS),Windows_NT)
-    CXX = g++
-    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
-    INCLUDES = -Ichess_engine/include
-    EXT = .exe
-    NULL_DEVICE = nul
-    MKDIR = mkdir
-    RM_DIR = rmdir /S /Q
-    RM_FILE = del /Q
-    TRUE_DEVICE = exit /b 0
+	CXX = g++
+	CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+	INCLUDES = -Ichess_engine/include -Iinclude
+	EXT = .exe
+	NULL_DEVICE = nul
+	MKDIR = mkdir
+	RM_DIR = rmdir /S /Q
+	RM_FILE = del /Q
+	TRUE_DEVICE = exit /b 0
 else
-    CXX = g++
-    CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
-    INCLUDES = -Ichess_engine/include
-    EXT = 
-    NULL_DEVICE = /dev/null
-    MKDIR = mkdir -p
-    RM_DIR = rm -rf
-    RM_FILE = rm -f
-    TRUE_DEVICE = true
+	CXX = g++
+	CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
+	INCLUDES = -Ichess_engine/include -Iinclude
+	EXT = 
+	NULL_DEVICE = /dev/null
+	MKDIR = mkdir -p
+	RM_DIR = rm -rf
+	RM_FILE = rm -f
+	TRUE_DEVICE = true
 endif
 
 # Output binary
@@ -41,7 +41,7 @@ ENGINE_SRC = $(ENGINE_DIR)/engine.cpp $(ENGINE_DIR)/evaluation.cpp $(ENGINE_DIR)
 HEURISTICS_SRC = $(HEURISTICS_DIR)/historyHeuristic.cpp $(HEURISTICS_DIR)/killerMoves.cpp $(HEURISTICS_DIR)/transposition.cpp $(HEURISTICS_DIR)/zobrist.cpp
 MOVE_SRC = $(MOVE_DIR)/movegen.cpp $(MOVE_DIR)/nullMoveHandler.cpp
 
-# Object files for source files in chess_engine/src
+# Object files for source files in chess_engine/src (excluding GUI)
 SRC_OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OUT_DIR)/%.o,$(BOARD_SRC) $(ENGINE_SRC) $(HEURISTICS_SRC) $(MOVE_SRC))
 
 # Object files for main source file
@@ -81,10 +81,23 @@ run_gui: build_api
 	@echo "Running Chess GUI..."
 	@python GUI/gui.py
 
+# Task 3: Build and link src/main.cpp into an executable
+build_console: $(OUT_DIR)/main$(EXT)
+	@echo "Main compiled and linked."
+
+# Compile and link src/main.cpp (excluding GUI dependencies)
+$(OUT_DIR)/main$(EXT): $(SRC_DIR)/main.cpp $(SRC_OBJ_FILES)
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^
+
+# Task 4: Run the chess engine console version
+run_console: build_console
+	@echo "Running Chess Engine..."
+	@$(OUT_DIR)/main$(EXT)
+
 # Clean build files
 clean:
-	@$(RM_DIR) $(OUT_DIR) 2>/dev/null || $(TRUE_DEVICE)
-	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>/dev/null || $(TRUE_DEVICE)
+	@$(RM_DIR) $(OUT_DIR) 2>$(NULL_DEVICE) || $(TRUE_DEVICE)
+	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>$(NULL_DEVICE) || $(TRUE_DEVICE)
 	@echo "Cleaned build and cache."
 
 # Phony targets
