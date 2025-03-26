@@ -13,6 +13,6 @@
 # ignore .o files
 out/
 # ignore env files
-core_dump_env/
+env/
 # ignore pycache
-GUI/API/__pycache__/
+GUI/API/__pycache__/*
