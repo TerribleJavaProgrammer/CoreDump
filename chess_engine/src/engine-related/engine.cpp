@@ -69,7 +69,6 @@ Move findBestMove(Move::Color color, int maxDepth, double timeLimitSeconds, bool
                         startTime,
                         timeLimitSeconds
                     );
-                    // int negamax(Position& pos, int depth, int alpha, int beta, Move::Color color, int ply, std::chrono::_V2::system_clock::time_point startTime, double timeLimit)
                     int score = -searchResult.score;
                     leafNodeCount++;
                     undoMove(currentPos, rootMoves[index]);

@@ -79,9 +79,6 @@ class ChessBoard:
         self.game_active = True
         self.update_board()
         self.start_button.config(state = tk.DISABLED)
-        
-        if not self.player_color:
-            self.make_bot_move()
 
     def update_board(self):
         if not self.game_active:

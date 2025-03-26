@@ -25,7 +25,7 @@ int main() {
             pIsWhite = (pColorStr == "white");
             currPosition.initializePosition();
             if (!pIsWhite) {
-                //makeMove(currPosition, findBestMove(Move::Color::WHITE, 50, 3, false));
+                makeMove(currPosition, findBestMove(Move::Color::WHITE, 50, 3, false));
             }
             std::cout << "initSuccess" << std::endl;
         } else if (action == "move") {
@@ -55,7 +55,7 @@ int main() {
         } else if (action == "fetchState") {
             std::string state = currPosition.displayPosition();
             std::string returnable;
-            for (int i = 0; i < static_cast<std::string::size_type>(state.size()); i++) {
+            for (int i = 0; i < state.size(); i++) {
                 if (state.substr(i, 1) != " ") {
                     returnable += state[i];
                 }
@@ -64,7 +64,7 @@ int main() {
         } else if (action == "botMove") {
             std::cerr << "recieved" << std::endl; // NOT RECIEVED
             std::cout.flush(); // NOT RECIEVED
-            //makeMove(currPosition, findBestMove((pIsWhite ? Move::Color::BLACK : Move::Color::WHITE), 50, 3, false));
+            makeMove(currPosition, findBestMove((pIsWhite ? Move::Color::BLACK : Move::Color::WHITE), 50, 3, false));
             std::cout << "botMoved" << std::endl; // NOT RECIEVED
         } else if (action == "isMate") {
             bool noMovesWhite = generateMoves(currPosition, Move::Color::WHITE).size() == 0;
