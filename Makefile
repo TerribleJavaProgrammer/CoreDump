@@ -8,6 +8,7 @@ ifeq ($(OS),Windows_NT)
     MKDIR = mkdir
     RM_DIR = rmdir /S /Q
     RM_FILE = del /Q
+    TRUE_DEVICE = exit /b 0
 else
     CXX = g++
     CXXFLAGS = -std=c++17 -Wall -Wextra -Ofast
@@ -17,6 +18,7 @@ else
     MKDIR = mkdir -p
     RM_DIR = rm -rf
     RM_FILE = rm -f
+    TRUE_DEVICE = true
 endif
 
 # Output binary
@@ -81,8 +83,8 @@ run_gui: build_api
 
 # Clean build files
 clean:
-	@$(RM_DIR) $(OUT_DIR) 2>/dev/null || true
-	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>/dev/null || true
+	@$(RM_DIR) $(OUT_DIR) 2>/dev/null || $(TRUE_DEVICE)
+	@$(RM_FILE) GUI/API/__pycache__/*.pyc 2>/dev/null || $(TRUE_DEVICE)
 	@echo "Cleaned build and cache."
 
 # Phony targets
