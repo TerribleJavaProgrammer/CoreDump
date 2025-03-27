@@ -9,6 +9,10 @@
 #include <string>
 #include <sstream>
 
+#define MAX_DEPTH 9
+#define MAX_TIME 200
+#define DEBUG false
+
 int main() {
     // Initialize the game state
     currPosition.initializePosition();        // Set up initial piece positions
@@ -43,7 +47,7 @@ int main() {
         bool isPlayerTurn = currentPlayerIsWhite == playerIsWhite;
         isPlayerTurn = isPlayerTurn && false;
         Move move;
-
+        std::cout << "Move #: " << fullmoveCounter+1 << "\n";
         if (isPlayerTurn) {
             // Human player's turn
             std::cout << "\nCommands:\n";
@@ -106,7 +110,7 @@ int main() {
             // Computer's turn
             std::cout << "Computer is thinking...\n";
             auto start = std::chrono::high_resolution_clock::now();
-            move = findBestMove(currentPlayer, 5, 100, true); // Search n ply deep
+            move = findBestMove(currentPlayer, MAX_DEPTH, MAX_TIME, DEBUG); // Search n ply deep
             auto end = std::chrono::high_resolution_clock::now();
             double timeTaken = std::chrono::duration<double>(end - start).count();
             std::cout << "(Time taken: " << timeTaken << "s)\n";
