@@ -17,7 +17,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(pawnMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::PAWN, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::PAWN, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
@@ -31,7 +31,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(knightMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::KNIGHT, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::KNIGHT, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
@@ -45,7 +45,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(bishopMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::BISHOP, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::BISHOP, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
@@ -59,7 +59,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(rookMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::ROOK, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::ROOK, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
@@ -73,7 +73,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(queenMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::QUEEN, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::QUEEN, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
@@ -87,7 +87,7 @@ std::vector<Move> generateMoves(const Position& pos, Move::Color color) {
                 int targetSquare = popLSB(kingMoves);
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare))) { // Valid capture or empty square
-                    Move move(square, targetSquare, false, Move::PieceType::KING, color, isCapture);
+                    Move move(square, targetSquare, isCapture, Move::PieceType::KING, color, false);
                     if (!wouldLeaveKingInCheck(pos, move)) {
                         moveList.push_back(move);
                     }
