@@ -7,9 +7,13 @@
 #include "move/move.h"
 #include "board/bitboard.h"
 #include "extraHeuristics/zobrist.h"
+#include "color.h"
 
 class Position
 {
+private:
+    char getSquareChar(int square);
+
 public:
     // Public bitboard fields
     uint64_t whitePawns, whiteKnights, whiteBishops, whiteRooks, whiteQueens, whiteKing;
@@ -17,11 +21,6 @@ public:
     uint8_t castlingRights;
     int enPassantSquare;
 
-private:
-    // Encapsulated fields
-    char getSquareChar(int square);
-
-public:
     // Constructor
     Position();
 

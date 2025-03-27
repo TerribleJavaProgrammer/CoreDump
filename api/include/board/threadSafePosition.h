@@ -3,7 +3,6 @@
 
 #include <mutex>
 #include "board/position.h"
-#include "board/board.h"
 
 // Barely used. To prune.
 

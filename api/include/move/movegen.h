@@ -8,7 +8,7 @@
 #include "move/move.h"
 #include "board/magic/magicentry.h"
 #include "board/magic/magicbitboard.h"
-#include "board/board.h"
+#include "color.h"
 
 // Bitboard constants for file and rank masks
 constexpr uint64_t FILE_A = 0x0101010101010101ULL; // Leftmost file
@@ -22,13 +22,13 @@ constexpr uint64_t RANK_5 = 0x000000FF00000000ULL; // Black pawn double push tar
 constexpr uint64_t RANK_7 = 0x00FF000000000000ULL; // Black pawn starting rank
 constexpr uint64_t RANK_8 = 0xFF00000000000000ULL; // Top rank (black's back rank)
 
-std::vector<Move> generateMoves(const Position &pos, Color::color);                      // Generatse all legal moves
-uint64_t getPawnMoves(int square, Color::color, uint64_t occupied, const Position &pos); // Gets pawn moves
-uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos);         // Gets legal castling moves
-bool isSquareAttacked(int square, Color::attackingColor, const Position &pos);
-std::vector<Move> generateCaptures(const Position &pos, Color::color); // Generates all legal captures
+std::vector<Move> generateMoves(const Position &pos, Color);                      // Generatse all legal moves
+uint64_t getPawnMoves(int square, Color, uint64_t occupied, const Position &pos); // Gets pawn moves
+uint64_t getCastlingMoves(Color, uint64_t occupied, const Position &pos);         // Gets legal castling moves
+bool isSquareAttacked(int square, Color, const Position &pos);
+std::vector<Move> generateCaptures(const Position &pos, Color); // Generates all legal captures
 bool wouldLeaveKingInCheck(const Position &pos, const Move &move);
-bool isInCheck(const Position &pos, Color::color);
+bool isInCheck(const Position &pos, Color);
 
 inline uint64_t getRookMoves(int square, uint64_t occupied)
 {

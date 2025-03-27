@@ -12,14 +12,13 @@ std::string toAlgebraic(int square)
 
 struct Move
 {
-
     int fromSquare;  // Source square (0-63)
     int toSquare;    // Destination square (0-63)
     bool isCapture;  // True if this move captures a piece
     bool isCastling; // True if this is a castling move
 
-    PieceType pieceType;             // Type of piece being moved
-    Color color;                     // Color of the piece being moved
+    PieceType pieceType;       // Type of piece being moved
+    Color color;               // Color of the piece being moved
     CastlingType castlingType; // Type of castling move
 
     bool isPromotion;         // True if this is a pawn promotion

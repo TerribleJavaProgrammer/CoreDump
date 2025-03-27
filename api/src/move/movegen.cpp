@@ -1,11 +1,11 @@
 #include "move/movegen.h"
 
-std::vector<Move> generateMoves(Position &pos, Color::color)
+std::vector<Move> generateMoves(Position &pos, Color color)
 {
     std::vector<Move> moveList;
 
-    uint64_t ourPieces = (color == Color:: ::WHITE) ? pos.getWhitePieces() : pos.getBlackPieces();
-    uint64_t enemyPieces = (color == Color:: ::WHITE) ? pos.getBlackPieces() : pos.getWhitePieces();
+    uint64_t ourPieces = (color == Color::WHITE) ? pos.getWhitePieces() : pos.getBlackPieces();
+    uint64_t enemyPieces = (color == Color::WHITE) ? pos.getBlackPieces() : pos.getWhitePieces();
     uint64_t ourPiecesCopy = ourPieces; // Preserve original value for iteration
 
     while (ourPiecesCopy)
@@ -22,7 +22,7 @@ std::vector<Move> generateMoves(Position &pos, Color::color)
                 bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                 if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                 { // Valid capture or empty square
-                    Move move(square, targetSquare, false, PieceType::PAWN, color, isCapture);
+                    Move move(square, targetSquare, isCapture, PieceType::PAWN, color, false);
                     if (!wouldLeaveKingInCheck(pos, move))
                     {
                         moveList.push_back(move);
@@ -130,7 +130,7 @@ uint64_t getPawnMoves(int square, Color::color, uint64_t occupied, Position &pos
     uint64_t moves = 0ULL;
     uint64_t pawnBB = 1ULL << square;
 
-    if (color == Color:: ::WHITE)
+    if (color == Color::WHITE)
     {
         uint64_t singlePush = (pawnBB << 8) & ~occupied;
         moves |= singlePush;
@@ -196,15 +196,15 @@ uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
 {
     uint64_t moves = 0ULL;
 
-    if (color == Color:: ::WHITE)
+    if (color == Color::WHITE)
     {
         if (pos.castlingRights & (1 << 0))
         {
             // Check if squares between king and rook are empty and not attacked
             if (!getBit(occupied, 5) && !getBit(occupied, 6) &&
-                !isSquareAttacked(4, Color:: ::BLACK, pos) &&
-                !isSquareAttacked(5, Color:: ::BLACK, pos) &&
-                !isSquareAttacked(6, Color:: ::BLACK, pos))
+                !isSquareAttacked(4, Color::BLACK, pos) &&
+                !isSquareAttacked(5, Color::BLACK, pos) &&
+                !isSquareAttacked(6, Color::BLACK, pos))
             {
                 moves |= (1ULL << 6); // g1
             }
@@ -213,9 +213,9 @@ uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
         {
             // Check if squares between king and rook are empty and not attacked
             if (!getBit(occupied, 1) && !getBit(occupied, 2) && !getBit(occupied, 3) &&
-                !isSquareAttacked(4, Color:: ::BLACK, pos) &&
-                !isSquareAttacked(3, Color:: ::BLACK, pos) &&
-                !isSquareAttacked(2, Color:: ::BLACK, pos))
+                !isSquareAttacked(4, Color::BLACK, pos) &&
+                !isSquareAttacked(3, Color::BLACK, pos) &&
+                !isSquareAttacked(2, Color::BLACK, pos))
             {
                 moves |= (1ULL << 2); // c1
             }
@@ -227,9 +227,9 @@ uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
         {
             // Check if squares between king and rook are empty and not attacked
             if (!getBit(occupied, 61) && !getBit(occupied, 62) &&
-                !isSquareAttacked(60, Color:: ::WHITE, pos) &&
-                !isSquareAttacked(61, Color:: ::WHITE, pos) &&
-                !isSquareAttacked(62, Color:: ::WHITE, pos))
+                !isSquareAttacked(60, Color::WHITE, pos) &&
+                !isSquareAttacked(61, Color::WHITE, pos) &&
+                !isSquareAttacked(62, Color::WHITE, pos))
             {
                 moves |= (1ULL << 62); // g8
             }
@@ -238,9 +238,9 @@ uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
         {
             // Check if squares between king and rook are empty and not attacked
             if (!getBit(occupied, 57) && !getBit(occupied, 58) && !getBit(occupied, 59) &&
-                !isSquareAttacked(60, Color:: ::WHITE, pos) &&
-                !isSquareAttacked(59, Color:: ::WHITE, pos) &&
-                !isSquareAttacked(58, Color:: ::WHITE, pos))
+                !isSquareAttacked(60, Color::WHITE, pos) &&
+                !isSquareAttacked(59, Color::WHITE, pos) &&
+                !isSquareAttacked(58, Color::WHITE, pos))
             {
                 moves |= (1ULL << 58); // c8
             }
@@ -255,7 +255,7 @@ bool isSquareAttacked(int square, Color::attackingColor, Position &pos)
     uint64_t occupied = pos.getWhitePieces() | pos.getBlackPieces();
 
     // Check for pawn attacks
-    if (attackingColor == Color:: ::WHITE)
+    if (attackingColor == Color::WHITE)
     {
         if (((square > 7) && (((square % 8) > 0) && getBit(pos.whitePawns, square - 9))) ||
             ((square % 8) < 7 && getBit(pos.whitePawns, square - 7)))
@@ -274,22 +274,22 @@ bool isSquareAttacked(int square, Color::attackingColor, Position &pos)
 
     // Check for knight attacks
     uint64_t knightAttacks = getKnightMoves(square);
-    if (knightAttacks & (attackingColor == Color:: ::WHITE ? pos.whiteKnights : pos.blackKnights))
+    if (knightAttacks & (attackingColor == Color::WHITE ? pos.whiteKnights : pos.blackKnights))
         return true;
 
     // Check for bishop/queen attacks
     uint64_t bishopAttacks = getBishopMoves(square, occupied);
-    if (bishopAttacks & (attackingColor == Color:: ::WHITE ? (pos.whiteBishops | pos.whiteQueens) : (pos.blackBishops | pos.blackQueens)))
+    if (bishopAttacks & (attackingColor == Color::WHITE ? (pos.whiteBishops | pos.whiteQueens) : (pos.blackBishops | pos.blackQueens)))
         return true;
 
     // Check for rook/queen attacks
     uint64_t rookAttacks = getRookMoves(square, occupied);
-    if (rookAttacks & (attackingColor == Color:: ::WHITE ? (pos.whiteRooks | pos.whiteQueens) : (pos.blackRooks | pos.blackQueens)))
+    if (rookAttacks & (attackingColor == Color::WHITE ? (pos.whiteRooks | pos.whiteQueens) : (pos.blackRooks | pos.blackQueens)))
         return true;
 
     // Check for king attacks
     uint64_t kingAttacks = getKingMoves(square);
-    if (kingAttacks & (attackingColor == Color:: ::WHITE ? pos.whiteKing : pos.blackKing))
+    if (kingAttacks & (attackingColor == Color::WHITE ? pos.whiteKing : pos.blackKing))
         return true;
 
     return false;
@@ -310,9 +310,9 @@ std::vector<Move> generateCaptures(const Position &pos, Color::color)
 
 bool isInCheck(const Position &pos, Color::color)
 {
-    uint64_t kingBB = (color == Color:: ::WHITE) ? pos.whiteKing : pos.blackKing;
+    uint64_t kingBB = (color == Color::WHITE) ? pos.whiteKing : pos.blackKing;
     int kingSquare = __builtin_ctzll(kingBB);
-    return isSquareAttacked(kingSquare, color == Color:: ::WHITE ? Color:: ::BLACK : Color:: ::WHITE, pos);
+    return isSquareAttacked(kingSquare, color == Color::WHITE ? Color::BLACK : Color::WHITE, pos);
 }
 
 bool wouldLeaveKingInCheck(const Position &pos, const Move &move)

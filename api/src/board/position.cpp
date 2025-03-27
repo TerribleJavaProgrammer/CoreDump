@@ -1,9 +1,6 @@
 #include "board/position.h"
 #include <iostream>
 #include <sstream>
-#include "extraHeuristics/zobrist.h"
-#include "pieceType.h"
-#include "color.h"
 
 inline void updateBitboard(uint64_t &bitboard, uint64_t &fromBB, uint64_t &toBB)
 {
@@ -173,7 +170,7 @@ public:
         // Handle castling (move the rook)
         if (move.isCastling)
         {
-            if (move.castlingType == Move::CastlingType::KINGSIDE)
+            if (move.castlingType == CastlingType::KINGSIDE)
             {
                 if (isWhite)
                 {
@@ -307,7 +304,7 @@ public:
         // Undo Castling
         if (move.isCastling)
         {
-            if (move.castlingType == Move::CastlingType::KINGSIDE)
+            if (move.castlingType == CastlingType::KINGSIDE)
             {
                 if (isWhite)
                 {
