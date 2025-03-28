@@ -5,7 +5,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(core_dump, handle)
 {
 	handle.def("test_fn", [](float a, float b)
-			   { return a + b });
+			   { return a + b; });
 
 	// Bind the Color enum to Python
 	py::enum_<Color>(handle, "Color")
