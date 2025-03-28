@@ -22,11 +22,11 @@ constexpr uint64_t RANK_5 = 0x000000FF00000000ULL; // Black pawn double push tar
 constexpr uint64_t RANK_7 = 0x00FF000000000000ULL; // Black pawn starting rank
 constexpr uint64_t RANK_8 = 0xFF00000000000000ULL; // Top rank (black's back rank)
 
-std::vector<Move> generateMoves(const Position &pos, Color);                      // Generatse all legal moves
+std::vector<Move> generateMoves(const Position &pos, Color);                      // Generate all legal moves
 uint64_t getPawnMoves(int square, Color, uint64_t occupied, const Position &pos); // Gets pawn moves
 uint64_t getCastlingMoves(Color, uint64_t occupied, const Position &pos);         // Gets legal castling moves
+std::vector<Move> generateCaptures(const Position &pos, Color);                   // Generates all legal captures
 bool isSquareAttacked(int square, Color, const Position &pos);
-std::vector<Move> generateCaptures(const Position &pos, Color); // Generates all legal captures
 bool wouldLeaveKingInCheck(const Position &pos, const Move &move);
 bool isInCheck(const Position &pos, Color);
 

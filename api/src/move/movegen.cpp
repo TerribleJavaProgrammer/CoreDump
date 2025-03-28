@@ -8,11 +8,12 @@ std::vector<Move> generateMoves(Position &pos, Color color)
     uint64_t enemyPieces = (color == Color::WHITE) ? pos.getBlackPieces() : pos.getWhitePieces();
     uint64_t ourPiecesCopy = ourPieces; // Preserve original value for iteration
 
+    // Loop thru ourPiecesCopy, popping 
     while (ourPiecesCopy)
     {
         int square = popLSB(ourPiecesCopy); // Extract one piece at a time
 
-        // Pawn moves
+        // Is current square a pawn?
         if ((pos.whitePawns | pos.blackPawns) & (1ULL << square))
         {
             uint64_t pawnMoves = getPawnMoves(square, color, pos.getOccupiedSquares(), pos);
@@ -30,7 +31,7 @@ std::vector<Move> generateMoves(Position &pos, Color color)
                 }
             }
         }
-        // Knight moves
+        // Is current square a knight?
         else if ((pos.whiteKnights | pos.blackKnights) & (1ULL << square))
         {
             uint64_t knightMoves = getKnightMoves(square);
@@ -125,7 +126,7 @@ std::vector<Move> generateMoves(Position &pos, Color color)
     return moveList;
 }
 
-uint64_t getPawnMoves(int square, Color::color, uint64_t occupied, Position &pos)
+uint64_t getPawnMoves(int square, Color color, uint64_t occupied, Position &pos)
 {
     uint64_t moves = 0ULL;
     uint64_t pawnBB = 1ULL << square;
@@ -192,7 +193,7 @@ uint64_t getPawnMoves(int square, Color::color, uint64_t occupied, Position &pos
     return moves;
 }
 
-uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
+uint64_t getCastlingMoves(Color color, uint64_t occupied, const Position &pos)
 {
     uint64_t moves = 0ULL;
 
@@ -250,7 +251,7 @@ uint64_t getCastlingMoves(Color::color, uint64_t occupied, const Position &pos)
     return moves;
 }
 
-bool isSquareAttacked(int square, Color::attackingColor, Position &pos)
+bool isSquareAttacked(int square, Color attackingColor, Position &pos)
 {
     uint64_t occupied = pos.getWhitePieces() | pos.getBlackPieces();
 
@@ -295,7 +296,7 @@ bool isSquareAttacked(int square, Color::attackingColor, Position &pos)
     return false;
 }
 
-std::vector<Move> generateCaptures(const Position &pos, Color::color)
+std::vector<Move> generateCaptures(const Position &pos, Color color)
 {
     std::vector<Move> allMoves = generateMoves(pos, color);
     std::vector<Move> captures;
@@ -308,7 +309,7 @@ std::vector<Move> generateCaptures(const Position &pos, Color::color)
     return captures;
 }
 
-bool isInCheck(const Position &pos, Color::color)
+bool isInCheck(const Position &pos, Color color)
 {
     uint64_t kingBB = (color == Color::WHITE) ? pos.whiteKing : pos.blackKing;
     int kingSquare = __builtin_ctzll(kingBB);
@@ -317,9 +318,6 @@ bool isInCheck(const Position &pos, Color::color)
 
 bool wouldLeaveKingInCheck(const Position &pos, const Move &move)
 {
-    Position tempPos = pos;
-    makeMove(tempPos, move);
-    bool inCheck = isInCheck(tempPos, move.color); // Check if the move leaves the king in check
-    undoMove(tempPos, move);
-    return inCheck;
+    const Position tempPos(pos, move);
+    return isInCheck(tempPos, move.color); // Check if the move leaves the king in check;
 }

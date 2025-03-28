@@ -21,8 +21,12 @@ public:
     uint8_t castlingRights;
     int enPassantSquare;
 
-    // Constructor
+    // Starting board state constructor
     Position();
+    // Copy constructor
+    Position(const Position &other);
+    // Construct from position + move
+    Position(const Position &other, const Move &move);
 
     // Getters for on the fly composite bitboards
     uint64_t getWhitePieces() {}
@@ -34,6 +38,10 @@ public:
     uint64_t computeHash() const;
     std::string displayPosition();
     std::string getFen(bool whiteToMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget);
+    
+    // Move modifiers
+    void makeMove(const Move &move);
+    void undoMove(const Move &move);
 };
 
 #endif // POSITION_H

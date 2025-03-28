@@ -3,12 +3,14 @@
 std::atomic<uint64_t> nodeCount = 0;
 std::atomic<uint64_t> leafNodeCount = 0;
 
-int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply,
+// ! This function is where the magic happens. Optimizing its speed is of upmost importance.
+// Negamax with Alpha-Beta Pruning
+int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
             std::chrono::high_resolution_clock::time_point startTime, double timeLimit)
 {
     nodeCount++;
     // Transposition Table Lookup
-    TTEntry *ttEntry = probeTT(pos.zobristKey, depth, alpha, beta);
+    TTEntry *ttEntry = probeTT(pos.computeHash(), depth, alpha, beta);
     if (ttEntry && ttEntry->depth >= depth)
     {
         if (ttEntry->flag == EXACT)
@@ -34,7 +36,7 @@ int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply
 
     // **Null Move Pruning** (Skip losing positions)
     /*if (depth >= 3 && !isInCheck(pos, color)) {
-        int score = -negamax(pos, depth - 3, -beta, -beta + 1, color == Color::::WHITE ? Color::::BLACK : Color::::WHITE, ply + 1);
+        int score = -negamax(pos, depth - 3, -beta, -beta + 1, color == Color::WHITE ? Color::BLACK : Color::WHITE, ply + 1);
         if (score >= beta) return beta;  // Beta cutoff (opponent is winning)
     }*/
 
@@ -49,7 +51,7 @@ int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply
                                .count();
         if (elapsedTime >= timeLimit)
             return evaluatePosition(pos, color);
-        Move &move = moves[i];
+        const Move &move = moves[i];
 
         //  **Futility Pruning** (Skip obviously bad moves)
         if (depth <= 3 && !move.isCapture && !isInCheck(pos, color) && evaluatePosition(pos, color) + 200 <= alpha)
@@ -57,18 +59,18 @@ int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply
             continue;
         }
 
-        makeMove(pos, move);
-
+        pos.makeMove(move);
         int searchDepth = depth - 1;
-
         //  **Late Move Reductions (LMR)**
         if (!isPV && i >= 4 && !move.isCapture && depth >= 3)
         {
             searchDepth -= std::min(2, depth / 2); // Reduce depth more aggressively
         }
-
-        int score = -negamax(pos, searchDepth, -beta, -alpha, color == Color:: ::WHITE ? Color:: ::BLACK : Color:: ::WHITE, ply + 1, startTime, timeLimit);
-        undoMove(pos, move);
+        const Color otherColor = color == Color::WHITE ? Color::BLACK : Color::WHITE;
+        // Recursive call to this function but of the other color.
+        int score = -negamax(pos, searchDepth, -beta, -alpha, otherColor, ply + 1, startTime, timeLimit);
+        // One by one, we pop out of the recursive calls and undo each move back up the tree
+        pos.undoMove(move);
 
         if (score >= beta)
         {
@@ -98,7 +100,9 @@ int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply
     return bestScore;
 }
 
-int quiescenceSearch(Position &pos, int alpha, int beta, Color::color, int ply)
+// Search all capture moves that stem from this move
+// "Please mom, just one more search! It'll only take a few milliseconds!"
+int quiescenceSearch(const Position &pos, int alpha, int beta, Color color, int ply)
 {
     int standPat = evaluatePosition(pos, color);
     if (standPat >= beta)
@@ -115,12 +119,10 @@ int quiescenceSearch(Position &pos, int alpha, int beta, Color::color, int ply)
         if (!SEE(move))
             continue;
 
-        Position newPos = pos;
-        makeMove(newPos, move);
+        const Position tempPos(pos, move);
         leafNodeCount++;
-        int score = -quiescenceSearch(newPos, -beta, -alpha,
-                                      (color == Color:: ::WHITE ? Color:: ::BLACK : Color:: ::WHITE), ply + 1);
-        undoMove(newPos, move);
+        int score = -quiescenceSearch(tempPos, -beta, -alpha,
+                                      (color == Color::WHITE ? Color::BLACK : Color::WHITE), ply + 1);
 
         if (score >= beta)
             return beta; // Beta cutoff

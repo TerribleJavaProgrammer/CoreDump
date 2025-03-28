@@ -11,7 +11,6 @@
 
 struct Move
 {
-
     int fromSquare;  // Source square (0-63)
     int toSquare;    // Destination square (0-63)
     bool isCapture;  // True if this move captures a piece
@@ -34,6 +33,20 @@ struct Move
     int prevEnPassantSquare;    // En passant square before the move (-1 if none)
     int prevKingSquare;         // Stores king's position before the move
     uint8_t prevCastlingRights; // Bitmask of castling rights before move
+
+    // Constructor
+    Move(int from, int to, bool capture, PieceType type, Color col, bool castling,
+        CastlingType castlingType = CastlingType::NONE, bool promotion = false,
+        PieceType promoPiece = PieceType::NONE, uint64_t capturedBitboard = 0,
+        PieceType capturedType = PieceType::NONE, uint64_t prevWhite = 0,
+        uint64_t prevBlack = 0, uint64_t prevOccupiedSquares = 0,
+        int enPassantSquare = -1, uint8_t castlingRights = 0, int kingSquare = -1);
+
+    // Default constructor
+    Move();
+
+    std::string getPgn();
+    bool operator==(const Move &other) const;
 };
 
 #endif // MOVE_H

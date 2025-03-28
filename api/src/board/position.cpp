@@ -87,6 +87,27 @@ public:
         blackKing = setBit(blackKing, 60);       // E8
     }
 
+    // Copy constructor
+    Position(const Position &other) : whitePawns(other.whitePawns), whiteKnights(other.whiteKnights),
+                                whiteBishops(other.whiteBishops), whiteRooks(other.whiteRooks),
+                                whiteQueens(other.whiteQueens), whiteKing(other.whiteKing),
+                                blackPawns(other.blackPawns), blackKnights(other.blackKnights),
+                                blackBishops(other.blackBishops), blackRooks(other.blackRooks),
+                                blackQueens(other.blackQueens), blackKing(other.blackKing),
+                                castlingRights(other.castlingRights), enPassantSquare(other.enPassantSquare) {}
+
+    Position(const Position &other, const Move &move) : whitePawns(other.whitePawns), whiteKnights(other.whiteKnights),
+                                                whiteBishops(other.whiteBishops), whiteRooks(other.whiteRooks),
+                                                whiteQueens(other.whiteQueens), whiteKing(other.whiteKing),
+                                                blackPawns(other.blackPawns), blackKnights(other.blackKnights),
+                                                blackBishops(other.blackBishops), blackRooks(other.blackRooks),
+                                                blackQueens(other.blackQueens), blackKing(other.blackKing),
+                                                castlingRights(other.castlingRights), enPassantSquare(other.enPassantSquare)
+    {
+        makeMove(move);
+    }
+
+
     // Getters for on the fly composite bitboards
     uint64_t getWhitePieces() { return whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing; }
     uint64_t getBlackPieces() { return blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing; }

@@ -18,13 +18,13 @@
 #include <unordered_map>
 #include "move/move.h"
 #include "board/position.h"
-#include "engine-related/search/searchResult.h"
+#include "move/movegen.h"
+#include "search/search.h"
 #include "engine-related/prioritization.h"
 #include "engine-related/evaluation.h"
-#include "engine-related/threadSafePosition.h"
-#include "engine-related/threadResult.h"
+#include "board/threadSafePosition.h"
 #include "color.h"
 
-Move findBestMove(Color::color, int maxDepth, double timeLimitSeconds, bool debug);
+Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
 
 #endif // ENGINE_H

@@ -1,10 +1,10 @@
 #include "engine-related/engine.h"
 
-Move findBestMove(Color color, int maxDepth, double timeLimitSeconds, bool debug)
+Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug)
 {
     int nodeCount = 0;
     int leafNodeCount = 0;
-    ThreadSafePosition threadPos(currPosition.getPosition());
+    ThreadSafePosition threadPos(position);
     Position initialPos = threadPos.get();
 
     std::vector<Move> rootMoves = generateMoves(initialPos, color);
@@ -46,8 +46,8 @@ Move findBestMove(Color color, int maxDepth, double timeLimitSeconds, bool debug
         {
             threads.emplace_back([&, threadId]()
                                  {
-                int BestScore = -KING_VALUE * 2;
-                Move BestMove;
+                int bestScore = -KING_VALUE * 2;
+                Move bestMove;
                 Position localPosition = threadPos.get();
 
                 while (true) {
@@ -60,35 +60,32 @@ Move findBestMove(Color color, int maxDepth, double timeLimitSeconds, bool debug
                     size_t index = moveIndex.fetch_add(1);  
                     if (index >= rootMoves.size()) break;
 
-                    Position currentPos = localPosition;
-                    makeMove(currentPos, rootMoves[index]);
+                    // Build a position with the move applied
+                    Position tempPos(localPosition, rootMoves[index]);
 
-                    SearchResult searchResult;
-                    searchResult.score = negamax(
-                        currentPos,  
+                    int score = -negamax(
+                        tempPos,
                         depth,
                         -KING_VALUE * 2,
                         KING_VALUE * 2,
-                        (color == Color::::WHITE ? Color::::BLACK : Color::::WHITE),
+                        (color == Color::WHITE ? Color::BLACK : Color::WHITE),
                         0,
                         startTime,
                         timeLimitSeconds
                     );
-                    int score = -searchResult.score;
                     leafNodeCount++;
-                    undoMove(currentPos, rootMoves[index]);
 
-                    if (score > BestScore) {
-                        BestScore = score;
-                        BestMove = rootMoves[index];
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = rootMoves[index];
                     }
                 }
 
                 {
                     std::lock_guard<std::mutex> lock(result->mutex);
-                    if (BestScore > result->score) {
-                        result->score = BestScore;
-                        result->bestMove = BestMove;
+                    if (bestScore > result->score) {
+                        result->score = bestScore;
+                        result->bestMove = bestMove;
                     }
                 } });
         }

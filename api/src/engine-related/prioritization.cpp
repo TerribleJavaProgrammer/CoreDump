@@ -1,6 +1,7 @@
 #include "engine-related/prioritization.h"
 
-int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color::color)
+// Sort moves from 
+int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color color)
 {
     std::sort(moves.begin(), moves.end(), [&](const Move &a, const Move &b)
               {
@@ -8,7 +9,7 @@ int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color::col
 
                   // Fetch TT best move
                   TTEntry *tt = probeTT(pos.computeHash(), 0, -INF, INF);
-                  Move ttBestMove = (tt ? tt->bestMove : Move());
+                  const Move ttBestMove = (tt ? tt->bestMove : Move());
 
                   // Prioritize TT Move
                   if (a == ttBestMove)
@@ -28,7 +29,7 @@ int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color::col
 
                   // History Heuristic
                   // Ensure valid move indices before accessing the array
-                  int colorIndex = (color == Color:: ::WHITE) ? 0 : 1;
+                  int colorIndex = (color == Color::WHITE) ? 0 : 1;
 
                   if (colorIndex >= 0 && colorIndex < 2 &&
                       a.fromSquare >= 0 && a.fromSquare < 64 &&

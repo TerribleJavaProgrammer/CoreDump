@@ -1,7 +1,6 @@
-#include <vector>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "board/board.h"
+#include "board/position.h"
 
 namespace py = pybind11;
 

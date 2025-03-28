@@ -1,6 +1,6 @@
 #include "engine-related/evaluation.h"
 
-int evaluatePosition(const Position &pos, Color::color)
+int evaluatePosition(const Position &pos, Color color)
 {
     int score = 0;
 
@@ -84,7 +84,7 @@ int evaluatePosition(const Position &pos, Color::color)
     }
 
     // Negate for Black's perspective
-    return (color == Color:: ::WHITE) ? score : -score;
+    return (color == Color::WHITE) ? score : -score;
 }
 
 // Mirroring function for black's perspective (flips board vertically)

@@ -134,6 +134,8 @@ inline int getPieceValue(PieceType piece)
     }
 }
 
+// Only allow positive trade captures
+// TODO this restricts the bots abilities for gambits 
 inline bool SEE(Move move)
 {
     int capturedValue = getPieceValue(move.capturedPieceType);

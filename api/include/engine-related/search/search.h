@@ -16,13 +16,12 @@
 #include "global_constants.h"
 #include "extraHeuristics/historyHeuristic.h"
 #include "extraHeuristics/killerMoves.h"
-#include "move/nullMove/nullMoveHandler.h"
 
 extern std::atomic<uint64_t> nodeCount;
 extern std::atomic<uint64_t> leafNodeCount;
 
-int negamax(Position &pos, int depth, int alpha, int beta, Color::color, int ply,
+int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
             std::chrono::high_resolution_clock::time_point startTime, double timeLimit);
-int quiescenceSearch(Position &pos, int alpha, int beta, Color::color, int ply);
+int quiescenceSearch(Position &pos, int alpha, int beta, Color color, int ply);
 
 #endif // SEARCH_H
