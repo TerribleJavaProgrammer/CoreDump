@@ -19,7 +19,7 @@
 #include "move/move.h"
 #include "board/position.h"
 #include "move/movegen.h"
-#include "search/search.h"
+#include "engine-related/search.h"
 #include "engine-related/prioritization.h"
 #include "engine-related/evaluation.h"
 #include "board/threadSafePosition.h"

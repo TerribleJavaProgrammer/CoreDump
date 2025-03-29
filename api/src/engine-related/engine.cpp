@@ -68,7 +68,7 @@ Move findBestMove(Position position, Color color, int maxDepth, double timeLimit
                         depth,
                         -KING_VALUE * 2,
                         KING_VALUE * 2,
-                        (color == Color::WHITE ? Color::BLACK : Color::WHITE),
+                        (invertColor(color)),
                         0,
                         startTime,
                         timeLimitSeconds

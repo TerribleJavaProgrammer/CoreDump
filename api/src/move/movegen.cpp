@@ -313,7 +313,7 @@ bool isInCheck(const Position &pos, Color color)
 {
     uint64_t kingBB = (color == Color::WHITE) ? pos.whiteKing : pos.blackKing;
     int kingSquare = __builtin_ctzll(kingBB);
-    return isSquareAttacked(kingSquare, color == Color::WHITE ? Color::BLACK : Color::WHITE, pos);
+    return isSquareAttacked(kingSquare, invertColor(color), pos);
 }
 
 bool wouldLeaveKingInCheck(const Position &pos, const Move &move)

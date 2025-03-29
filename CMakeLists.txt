@@ -1,7 +1,7 @@
 set(PROJECT_NAME "core_dump")
 cmake_minimum_required(VERSION 3.28)
 project(${PROJECT_NAME})
-include_directories("/home/gili/Documents/CoreDump/env/lib/python3.12/site-packages/pybind11/include;/usr/include/python3.12")
+#include_directories("/home/gili/Documents/CoreDump/env/lib/python3.12/site-packages/pybind11/include;/usr/include/python3.12")
 add_subdirectory(pybind11)
 add_subdirectory(api)
 pybind11_add_module(${PROJECT_NAME} api/src/main.cpp)
