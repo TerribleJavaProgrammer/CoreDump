@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(core_dump)
-set(PYBIND_INCLUDE_DIR "/home/gili/Documents/CoreDump/env/lib/python3.12/site-packages/pybind11/include;/usr/include/python3.12")
+set(PYBIND_INCLUDE_DIR "./env/lib/python3.12/site-packages/pybind11/include;/usr/include/python3.12")
 # Create the console app exectuable
 add_executable(${PROJECT_NAME} ./api/src/main.cpp)
 
