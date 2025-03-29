@@ -2,8 +2,9 @@
 
 Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug)
 {
-    int nodeCount = 0;
-    int leafNodeCount = 0;
+    std::atomic<uint64_t> nodeCount{0};
+    std::atomic<uint64_t> leafNodeCount{0};
+
     ThreadSafePosition threadPos(position);
     Position initialPos = threadPos.get();
 
@@ -71,7 +72,9 @@ Move findBestMove(Position position, Color color, int maxDepth, double timeLimit
                         (invertColor(color)),
                         0,
                         startTime,
-                        timeLimitSeconds
+                        timeLimitSeconds,
+                        &nodeCount,
+                        &leafNodeCount
                     );
                     leafNodeCount++;
 

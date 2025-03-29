@@ -1,5 +1,2 @@
-cd build
-cmake ..
-make
-cd ..
-python ./test.py
+./configure.sh
+./build.sh

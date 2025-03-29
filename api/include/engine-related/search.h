@@ -17,8 +17,8 @@
 #include "extraHeuristics/historyHeuristic.h"
 #include "extraHeuristics/killerMoves.h"
 
-extern std::atomic<uint64_t> nodeCount;
-extern std::atomic<uint64_t> leafNodeCount;
+// extern std::atomic<uint64_t> nodeCount;
+// extern std::atomic<uint64_t> leafNodeCount;
 
 int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
             std::chrono::high_resolution_clock::time_point startTime, double timeLimit, std::atomic<uint64_t> &nodeCount, std::atomic<uint64_t> &leafNodeCount);
