@@ -1,11 +1,13 @@
 #ifndef TTFLAG_H
 #define TTFLAG_H
-
-enum TTFlag
+namespace coredump
 {
-    EXACT,
-    LOWERBOUND,
-    UPPERBOUND
-};
+    enum TTFlag
+    {
+        EXACT,
+        LOWERBOUND,
+        UPPERBOUND
+    };
+}
 
 #endif // TTFLAG_H

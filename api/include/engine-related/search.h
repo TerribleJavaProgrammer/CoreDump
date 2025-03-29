@@ -19,9 +19,10 @@
 
 // extern std::atomic<uint64_t> nodeCount;
 // extern std::atomic<uint64_t> leafNodeCount;
-
-int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
-            std::chrono::high_resolution_clock::time_point startTime, double timeLimit, std::atomic<uint64_t> &nodeCount, std::atomic<uint64_t> &leafNodeCount);
-int quiescenceSearch(Position &pos, int alpha, int beta, Color color, int ply, std::atomic<uint64_t> &leafNodeCount);
-
+namespace coredump
+{
+    int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
+                std::chrono::high_resolution_clock::time_point startTime, double timeLimit, std::atomic<uint64_t> &nodeCount, std::atomic<uint64_t> &leafNodeCount);
+    int quiescenceSearch(Position &pos, int alpha, int beta, Color color, int ply, std::atomic<uint64_t> &leafNodeCount);
+}
 #endif // SEARCH_H

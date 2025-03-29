@@ -3,19 +3,21 @@
 
 #include "move/move.h"
 
-// Killer move history
-extern Move killerMoves[100][2];
-
-inline void storeKillerMove(Move move, int ply)
+namespace coredump
 {
-    if (0 <= ply && ply < 100)
+    // Killer move history
+    extern Move killerMoves[100][2];
+
+    inline void storeKillerMove(Move move, int ply)
     {
-        if (!(killerMoves[ply][0] == move))
+        if (0 <= ply && ply < 100)
         {
-            killerMoves[ply][1] = killerMoves[ply][0]; // Shift second-best
-            killerMoves[ply][0] = move;                // Store best killer move
+            if (!(killerMoves[ply][0] == move))
+            {
+                killerMoves[ply][1] = killerMoves[ply][0]; // Shift second-best
+                killerMoves[ply][0] = move;                // Store best killer move
+            }
         }
     }
 }
-
 #endif // KILLERMOVES_H

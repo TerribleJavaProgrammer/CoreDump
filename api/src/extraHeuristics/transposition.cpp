@@ -3,35 +3,38 @@
 #include "extraHeuristics/transposition/TTflag.h"
 #include "move/move.h"
 
-std::unordered_map<uint64_t, TTEntry> transpositionTable;
-
-void storeTT(uint64_t hash, int depth, int score, Move bestMove, TTFlag flag)
+namespace coredump
 {
-    auto it = transpositionTable.find(hash);
+    std::unordered_map<uint64_t, TTEntry> transpositionTable;
 
-    // Replace only if the new depth is greater or equal (prevents shallow overwrites)
-    if (it == transpositionTable.end() || it->second.depth <= depth)
+    void storeTT(uint64_t hash, int depth, int score, Move bestMove, TTFlag flag)
     {
-        transpositionTable[hash] = {hash, depth, score, bestMove, flag};
-    }
-}
+        auto it = transpositionTable.find(hash);
 
-TTEntry *probeTT(uint64_t zobristKey, int depth, int alpha, int beta)
-{
-    auto entry = transpositionTable.find(zobristKey);
-    if (entry == transpositionTable.end())
-        return nullptr; // No entry found
-
-    TTEntry *tt = &entry->second;
-    if (tt->depth >= depth)
-    {
-        if (tt->flag == EXACT)
-            return tt;
-        if (tt->flag == LOWERBOUND && tt->score >= beta)
-            return tt;
-        if (tt->flag == UPPERBOUND && tt->score <= alpha)
-            return tt;
+        // Replace only if the new depth is greater or equal (prevents shallow overwrites)
+        if (it == transpositionTable.end() || it->second.depth <= depth)
+        {
+            transpositionTable[hash] = {hash, depth, score, bestMove, flag};
+        }
     }
 
-    return nullptr; // No usable data
+    TTEntry *probeTT(uint64_t zobristKey, int depth, int alpha, int beta)
+    {
+        auto entry = transpositionTable.find(zobristKey);
+        if (entry == transpositionTable.end())
+            return nullptr; // No entry found
+
+        TTEntry *tt = &entry->second;
+        if (tt->depth >= depth)
+        {
+            if (tt->flag == EXACT)
+                return tt;
+            if (tt->flag == LOWERBOUND && tt->score >= beta)
+                return tt;
+            if (tt->flag == UPPERBOUND && tt->score <= alpha)
+                return tt;
+        }
+
+        return nullptr; // No usable data
+    }
 }

@@ -11,6 +11,9 @@
 #include "extraHeuristics/historyHeuristic.h"
 #include "extraHeuristics/killerMoves.h"
 
-int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color color);
+namespace coredump
+{
+    int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color color);
+}
 
 #endif // PRIORITIZATION_H

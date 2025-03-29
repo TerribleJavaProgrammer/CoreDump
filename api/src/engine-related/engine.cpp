@@ -1,52 +1,54 @@
 #include "engine-related/engine.h"
 
-Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug)
+namespace coredump
 {
-    std::atomic<uint64_t> nodeCount{0};
-    std::atomic<uint64_t> leafNodeCount{0};
-
-    ThreadSafePosition threadPos(position);
-    Position initialPos = threadPos.get();
-
-    std::vector<Move> rootMoves = generateMoves(initialPos, color);
-    sortMoves(rootMoves, initialPos, 0, color);
-    if (debug)
+    Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug)
     {
-        std::cout << "============================\n";
-        std::cout << "Starting Search\n";
-        std::cout << "Root Moves: " << rootMoves.size() << "\n";
-        std::cout << "Max Depth: " << maxDepth << "\n";
-        std::cout << "Threads: " << std::thread::hardware_concurrency() << "\n";
-        std::cout << "============================\n";
-    }
-    struct ThreadResult
-    {
-        std::atomic<int> score{-KING_VALUE * 2};
-        Move bestMove;
-        std::mutex mutex;
-    };
+        std::atomic<uint64_t> nodeCount{0};
+        std::atomic<uint64_t> leafNodeCount{0};
 
-    auto result = std::make_shared<ThreadResult>();
+        ThreadSafePosition threadPos(position);
+        Position initialPos = threadPos.get();
 
-    auto startTime = std::chrono::high_resolution_clock::now();
-
-    const int numThreads = std::min(
-        static_cast<int>(std::thread::hardware_concurrency()),
-        static_cast<int>(rootMoves.size()));
-
-    std::atomic<size_t> moveIndex{0};
-
-    Move bestMoveSoFar;
-
-    // **Iterative Deepening Loop**
-    for (int depth = 1; depth <= maxDepth; depth++)
-    {
-        moveIndex = 0; // Reset move index for new depth
-        std::vector<std::thread> threads;
-        for (int threadId = 0; threadId < numThreads; threadId++)
+        std::vector<Move> rootMoves = generateMoves(initialPos, color);
+        sortMoves(rootMoves, initialPos, 0, color);
+        if (debug)
         {
-            threads.emplace_back([&, threadId]()
-                                 {
+            std::cout << "============================\n";
+            std::cout << "Starting Search\n";
+            std::cout << "Root Moves: " << rootMoves.size() << "\n";
+            std::cout << "Max Depth: " << maxDepth << "\n";
+            std::cout << "Threads: " << std::thread::hardware_concurrency() << "\n";
+            std::cout << "============================\n";
+        }
+        struct ThreadResult
+        {
+            std::atomic<int> score{-KING_VALUE * 2};
+            Move bestMove;
+            std::mutex mutex;
+        };
+
+        auto result = std::make_shared<ThreadResult>();
+
+        auto startTime = std::chrono::high_resolution_clock::now();
+
+        const int numThreads = std::min(
+            static_cast<int>(std::thread::hardware_concurrency()),
+            static_cast<int>(rootMoves.size()));
+
+        std::atomic<size_t> moveIndex{0};
+
+        Move bestMoveSoFar;
+
+        // **Iterative Deepening Loop**
+        for (int depth = 1; depth <= maxDepth; depth++)
+        {
+            moveIndex = 0; // Reset move index for new depth
+            std::vector<std::thread> threads;
+            for (int threadId = 0; threadId < numThreads; threadId++)
+            {
+                threads.emplace_back([&, threadId]()
+                                     {
                 int bestScore = -KING_VALUE * 2;
                 Move bestMove;
                 Position localPosition = threadPos.get();
@@ -91,49 +93,50 @@ Move findBestMove(Position position, Color color, int maxDepth, double timeLimit
                         result->bestMove = bestMove;
                     }
                 } });
-        }
+            }
 
-        for (auto &thread : threads)
-            thread.join();
+            for (auto &thread : threads)
+                thread.join();
 
-        bestMoveSoFar = result->bestMove;
+            bestMoveSoFar = result->bestMove;
 
-        double elapsedTime = std::chrono::duration<double>(
-                                 std::chrono::high_resolution_clock::now() - startTime)
-                                 .count();
-        if (debug)
-            std::cout << ">> Current Depth: " << depth
-                      << " | Best Move: " << bestMoveSoFar.fromSquare
-                      << " -> " << bestMoveSoFar.toSquare
-                      << " | Score: " << result->score
-                      << " | Node Count: " << nodeCount
-                      << " | Leaf Node Count: " << leafNodeCount
-                      << " | Time Elapsed: " << elapsedTime << "s\n";
-        if (elapsedTime >= timeLimitSeconds)
-        {
+            double elapsedTime = std::chrono::duration<double>(
+                                     std::chrono::high_resolution_clock::now() - startTime)
+                                     .count();
             if (debug)
-                std::cout << "Time limit reached. Stopping search at depth " << depth << ".\n";
-            break;
+                std::cout << ">> Current Depth: " << depth
+                          << " | Best Move: " << bestMoveSoFar.fromSquare
+                          << " -> " << bestMoveSoFar.toSquare
+                          << " | Score: " << result->score
+                          << " | Node Count: " << nodeCount
+                          << " | Leaf Node Count: " << leafNodeCount
+                          << " | Time Elapsed: " << elapsedTime << "s\n";
+            if (elapsedTime >= timeLimitSeconds)
+            {
+                if (debug)
+                    std::cout << "Time limit reached. Stopping search at depth " << depth << ".\n";
+                break;
+            }
         }
-    }
 
-    double totalTime = std::chrono::duration<double>(
-                           std::chrono::high_resolution_clock::now() - startTime)
-                           .count();
-    double nps = nodeCount / totalTime;
-    double lnps = leafNodeCount / totalTime;
-    if (debug)
-    {
-        std::cout << "============================\n";
-        std::cout << "Search Completed!\n";
-        std::cout << "Total Time: " << totalTime << "s\n";
-        std::cout << "Nodes Searched: " << nodeCount << "\n";
-        std::cout << "Nodes Per Second (NPS): " << nps << "\n";
-        std::cout << "Leaf Nodes Evaluated: " << leafNodeCount << "\n";
-        std::cout << "Leaf Nodes Per Second (LNPS): " << lnps << "\n";
-        std::cout << "Final Best Move: " << bestMoveSoFar.fromSquare << " -> "
-                  << bestMoveSoFar.toSquare << " (Score: " << result->score << ")\n";
-        std::cout << "============================\n";
+        double totalTime = std::chrono::duration<double>(
+                               std::chrono::high_resolution_clock::now() - startTime)
+                               .count();
+        double nps = nodeCount / totalTime;
+        double lnps = leafNodeCount / totalTime;
+        if (debug)
+        {
+            std::cout << "============================\n";
+            std::cout << "Search Completed!\n";
+            std::cout << "Total Time: " << totalTime << "s\n";
+            std::cout << "Nodes Searched: " << nodeCount << "\n";
+            std::cout << "Nodes Per Second (NPS): " << nps << "\n";
+            std::cout << "Leaf Nodes Evaluated: " << leafNodeCount << "\n";
+            std::cout << "Leaf Nodes Per Second (LNPS): " << lnps << "\n";
+            std::cout << "Final Best Move: " << bestMoveSoFar.fromSquare << " -> "
+                      << bestMoveSoFar.toSquare << " (Score: " << result->score << ")\n";
+            std::cout << "============================\n";
+        }
+        return bestMoveSoFar;
     }
-    return bestMoveSoFar;
 }

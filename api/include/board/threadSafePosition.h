@@ -5,21 +5,22 @@
 #include "board/position.h"
 
 // Barely used. To prune.
-
-class ThreadSafePosition
+namespace coredump
 {
-private:
-    Position pos;
-    mutable std::mutex mutex;
-
-public:
-    ThreadSafePosition(const Position &initial) : pos(initial) {}
-
-    Position get() const
+    class ThreadSafePosition
     {
-        std::lock_guard<std::mutex> lock(mutex);
-        return pos;
-    }
-};
+    private:
+        Position pos;
+        mutable std::mutex mutex;
 
+    public:
+        ThreadSafePosition(const Position &initial) : pos(initial) {}
+
+        Position get() const
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            return pos;
+        }
+    };
+}
 #endif // THREADSAFEPOSITION_H

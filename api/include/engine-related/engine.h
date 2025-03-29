@@ -25,6 +25,9 @@
 #include "board/threadSafePosition.h"
 #include "color.h"
 
-Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
+namespace coredump
+{
+    Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
+}
 
 #endif // ENGINE_H

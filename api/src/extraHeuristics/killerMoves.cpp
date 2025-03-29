@@ -1,3 +1,6 @@
 #include "extraHeuristics/killerMoves.h"
 
-Move killerMoves[100][2] = {};
+namespace coredump
+{
+    Move killerMoves[100][2] = {};
+}

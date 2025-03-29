@@ -1,13 +1,17 @@
 #ifndef COLOR_H
 #define COLOR_H
-enum class Color
+
+namespace coredump
 {
-    WHITE,
-    BLACK
-};
+    enum class Color
+    {
+        WHITE,
+        BLACK
+    };
 
-inline Color invertColor(Color color) {
-    return color == Color::WHITE ? Color::BLACK : Color::WHITE;
+    inline Color invertColor(Color color)
+    {
+        return color == Color::WHITE ? Color::BLACK : Color::WHITE;
+    }
 }
-
 #endif // COLOR_H

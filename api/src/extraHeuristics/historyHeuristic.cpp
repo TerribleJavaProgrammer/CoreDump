@@ -1,3 +1,6 @@
 #include "extraHeuristics/historyHeuristic.h"
 
-int historyHeuristic[2][64][64] = {};
+namespace coredump
+{
+    int historyHeuristic[2][64][64] = {};
+}
