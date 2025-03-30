@@ -14,7 +14,7 @@ namespace coredump
         NONE
     };
 
-    char piecePgn(PieceType piece)
+    inline char piecePgn(PieceType piece)
     {
         switch (piece)
         {
