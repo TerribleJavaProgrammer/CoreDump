@@ -1,5 +1,4 @@
-#ifndef KILLERMOVES_H
-#define KILLERMOVES_H
+#pragma once
 
 #include "move/move.h"
 
@@ -20,4 +19,3 @@ namespace coredump
         }
     }
 }
-#endif // KILLERMOVES_H

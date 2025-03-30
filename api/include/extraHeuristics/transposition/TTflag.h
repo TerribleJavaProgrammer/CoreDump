@@ -1,5 +1,4 @@
-#ifndef TTFLAG_H
-#define TTFLAG_H
+#pragma once
 namespace coredump
 {
     enum TTFlag
@@ -9,5 +8,3 @@ namespace coredump
         UPPERBOUND
     };
 }
-
-#endif // TTFLAG_H

@@ -1,8 +1,5 @@
-#ifndef GLOBAL_CONSTANTS_H
-#define GLOBAL_CONSTANTS_H
+#pragma once
 namespace coredump
 {
     const int INF = 2147483647;
 }
-
-#endif // GLOBAL_CONSTANTS_H

@@ -1,5 +1,4 @@
-#ifndef PIECETYPE_H
-#define PIECETYPE_H
+#pragma once
 
 namespace coredump
 {
@@ -36,5 +35,3 @@ namespace coredump
         }
     }
 }
-
-#endif // PIECETYPE_H

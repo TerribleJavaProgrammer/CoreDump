@@ -1,5 +1,4 @@
-#ifndef THREADSAFEPOSITION_H
-#define THREADSAFEPOSITION_H
+#pragma once
 
 #include <mutex>
 #include "board/position.h"
@@ -23,4 +22,3 @@ namespace coredump
         }
     };
 }
-#endif // THREADSAFEPOSITION_H

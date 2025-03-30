@@ -1,5 +1,4 @@
-#ifndef TTENTRY_H
-#define TTENTRY_H
+#pragma once
 
 #include "move/move.h"
 namespace coredump
@@ -13,5 +12,3 @@ namespace coredump
         int flag;            // Exact, Upper bound, Lower bound
     };
 }
-
-#endif // TTETNTRY_H

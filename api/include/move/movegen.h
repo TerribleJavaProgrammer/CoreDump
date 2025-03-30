@@ -1,5 +1,4 @@
-#ifndef MOVEGEN_H
-#define MOVEGEN_H
+#pragma once
 
 #include <vector>
 #include <algorithm>
@@ -76,4 +75,3 @@ namespace coredump
         return getRookMoves(square, occupied) | getBishopMoves(square, occupied);
     }
 }
-#endif // MOVEGEN_H

@@ -1,5 +1,4 @@
-#ifndef BITBOARDS_H
-#define BITBOARDS_H
+#pragma once
 
 #include <stdint.h>
 #include "move/move.h"
@@ -40,4 +39,3 @@ namespace coredump
         return square;
     }
 }
-#endif // BITBOARDS_H

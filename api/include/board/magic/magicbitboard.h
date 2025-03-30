@@ -1,5 +1,4 @@
-#ifndef MAGICBITBOARD_H
-#define MAGICBITBOARD_H
+#pragma once
 
 #include <stdint.h>
 #include <array>
@@ -115,4 +114,3 @@ namespace coredump
     // Returns: Bitboard with all possible bishop moves/attacks
     uint64_t generateBishopAttacks(int square, uint64_t blockers);
 }
-#endif // MAGICBITBOARD_H

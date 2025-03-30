@@ -1,5 +1,4 @@
-#ifndef COLOR_H
-#define COLOR_H
+#pragma once
 
 namespace coredump
 {
@@ -14,4 +13,3 @@ namespace coredump
         return color == Color::WHITE ? Color::BLACK : Color::WHITE;
     }
 }
-#endif // COLOR_H

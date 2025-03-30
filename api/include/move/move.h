@@ -1,5 +1,4 @@
-#ifndef MOVE_H
-#define MOVE_H
+#pragma once
 
 #include <string>
 #include <stdint.h>
@@ -51,4 +50,3 @@ namespace coredump
         bool operator==(const Move &other) const;
     };
 }
-#endif // MOVE_H

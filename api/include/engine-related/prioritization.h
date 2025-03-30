@@ -1,5 +1,4 @@
-#ifndef PRIORITIZATION_H
-#define PRIORITIZATION_H
+#pragma once
 
 #include <vector>
 #include <algorithm>
@@ -15,5 +14,3 @@ namespace coredump
 {
     int sortMoves(std::vector<Move> &moves, const Position &pos, int ply, Color color);
 }
-
-#endif // PRIORITIZATION_H

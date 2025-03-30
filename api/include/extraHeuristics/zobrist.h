@@ -1,5 +1,4 @@
-#ifndef ZOBRIST_H
-#define ZOBRIST_H
+#pragma once
 
 #include <stdint.h>
 #include <array>
@@ -16,5 +15,3 @@ namespace coredump
     // Initializes Zobrist hashing table
     void initZobrist();
 }
-
-#endif // ZOBRIST_H

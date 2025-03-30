@@ -1,5 +1,4 @@
-#ifndef EVALUATION_H
-#define EVALUATION_H
+#pragma once
 
 #include <stdint.h>
 #include <array>
@@ -144,4 +143,3 @@ namespace coredump
         return attackerValue <= capturedValue; // Allow only good captures
     }
 }
-#endif // EVALUATION_H

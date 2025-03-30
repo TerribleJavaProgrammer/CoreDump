@@ -1,5 +1,4 @@
-#ifndef MAGICENTRY_H
-#define MAGICENTRY_H
+#pragma once
 
 #include <stdint.h>
 #include <vector>
@@ -13,4 +12,3 @@ namespace coredump
         std::vector<uint64_t> attacks; // Pre-calculated attack patterns
     };
 }
-#endif // MAGICENTRY_H

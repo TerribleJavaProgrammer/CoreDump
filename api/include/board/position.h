@@ -1,5 +1,4 @@
-#ifndef POSITION_H
-#define POSITION_H
+#pragma once
 
 #include <stdint.h>
 #include <string>
@@ -46,4 +45,3 @@ namespace coredump
         void undoMove(const Move &move);
     };
 }
-#endif // POSITION_H

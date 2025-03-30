@@ -1,5 +1,4 @@
-#ifndef CASTLING_TYPE_H
-#define CASTLING_TYPE_H
+#pragma once
 namespace coredump
 {
     enum class CastlingType
@@ -9,5 +8,3 @@ namespace coredump
         QUEENSIDE
     };
 }
-
-#endif // CASTLING_TYPE_H

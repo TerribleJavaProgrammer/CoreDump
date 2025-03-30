@@ -1,5 +1,4 @@
-#ifndef TRANSPOSITION_H
-#define TRANSPOSITION_H
+#pragma once
 
 #include <stdint.h>
 #include <unordered_map>
@@ -14,5 +13,3 @@ namespace coredump
 
     TTEntry *probeTT(uint64_t zobristKey, int depth, int alpha, int beta);
 }
-
-#endif // TRANSPOSITION_H

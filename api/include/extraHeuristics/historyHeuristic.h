@@ -1,5 +1,4 @@
-#ifndef HISTORYHEURISTIC_H
-#define HISTORYHEURISTIC_H
+#pragma once
 
 #include "move/move.h"
 
@@ -13,5 +12,3 @@ namespace coredump
         historyHeuristic[(color == Color::WHITE) ? 0 : 1][move.fromSquare][move.toSquare] += depth * depth;
     }
 }
-
-#endif // HISTORYHEURISTIC_H

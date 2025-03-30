@@ -1,5 +1,4 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#pragma once
 
 #include <stdlib.h>
 #include <iostream>
@@ -29,5 +28,3 @@ namespace coredump
 {
     Move findBestMove(Position position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
 }
-
-#endif // ENGINE_H
