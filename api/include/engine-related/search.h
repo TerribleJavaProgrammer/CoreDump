@@ -4,16 +4,11 @@
 #include <chrono>
 #include <atomic>
 #include <stdint.h>
+#include <climits>
 #include "board/position.h"
-#include "extraHeuristics/transposition/transposition.h"
-#include "extraHeuristics/transposition/TTentry.h"
-#include "extraHeuristics/transposition/TTflag.h"
 #include "move/movegen.h"
-#include "move/move.h"
 #include "engine-related/evaluation.h"
 #include "engine-related/prioritization.h"
-#include "global_constants.h"
-#include "extraHeuristics/historyHeuristic.h"
 #include "extraHeuristics/killerMoves.h"
 
 // extern std::atomic<uint64_t> nodeCount;

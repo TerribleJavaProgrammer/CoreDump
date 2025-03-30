@@ -15,14 +15,8 @@
 #include <random>
 #include <bitset>
 #include <unordered_map>
-#include "move/move.h"
-#include "board/position.h"
-#include "move/movegen.h"
 #include "engine-related/search.h"
-#include "engine-related/prioritization.h"
-#include "engine-related/evaluation.h"
 #include "board/threadSafePosition.h"
-#include "color.h"
 
 namespace coredump
 {

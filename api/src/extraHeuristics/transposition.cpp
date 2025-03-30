@@ -1,7 +1,4 @@
-#include <stdint.h>
 #include "extraHeuristics/transposition/transposition.h"
-#include "extraHeuristics/transposition/TTflag.h"
-#include "move/move.h"
 
 namespace coredump
 {

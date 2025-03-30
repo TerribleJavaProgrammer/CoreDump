@@ -1,8 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <iostream>
-#include "board/position.h"
 #include "engine-related/engine.h"
-#include "move/move.h"
 
 namespace py = pybind11;
 namespace coredump

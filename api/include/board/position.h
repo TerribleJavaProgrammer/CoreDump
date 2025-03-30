@@ -3,13 +3,23 @@
 #include <stdint.h>
 #include <string>
 #include <iostream>
-#include "move/move.h"
+#include <sstream>
 #include "board/bitboard.h"
 #include "extraHeuristics/zobrist.h"
-#include "color.h"
 
 namespace coredump
 {
+    inline void updateBitboard(uint64_t &bitboard, uint64_t &fromBB, uint64_t &toBB)
+    {
+        bitboard &= ~fromBB; // Remove piece from its original square
+        bitboard |= toBB;    // Place piece in the new square
+    }
+
+    inline void handleCapture(uint64_t &bitboard, uint64_t &captureBB)
+    {
+        bitboard &= ~captureBB; // Remove captured piece from its square
+    }
+
     class Position
     {
     private:

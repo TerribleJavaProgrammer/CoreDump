@@ -2,12 +2,8 @@
 
 #include <vector>
 #include <algorithm>
-#include "board/bitboard.h"
 #include "board/position.h"
-#include "move/move.h"
-#include "board/magic/magicentry.h"
 #include "board/magic/magicbitboard.h"
-#include "color.h"
 
 namespace coredump
 {

@@ -41,7 +41,7 @@ namespace coredump
         //         return beta; // Beta cutoff (opponent is winning)
         // }
 
-        int bestScore = -INF;
+        int bestScore = -INT_MAX;
         Move bestMove;
         bool isPV = false; // Principal Variation (best line so far)
 

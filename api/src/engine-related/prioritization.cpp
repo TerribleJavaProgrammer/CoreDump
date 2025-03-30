@@ -10,7 +10,7 @@ namespace coredump
                       int scoreA = 0, scoreB = 0;
 
                       // Fetch TT best move
-                      TTEntry *tt = probeTT(pos.computeHash(), 0, -INF, INF);
+                      TTEntry *tt = probeTT(pos.computeHash(), 0, -INT_MAX, INT_MAX);
                       const Move ttBestMove = (tt ? tt->bestMove : Move());
 
                       // Prioritize TT Move

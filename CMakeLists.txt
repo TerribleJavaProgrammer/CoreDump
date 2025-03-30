@@ -12,12 +12,12 @@ add_executable(${PROJECT_NAME} ${API_SOURCES})
 
 # Include the header directory
 target_include_directories(${PROJECT_NAME} PRIVATE "./api/include")
-
-# Add pybind11
-add_subdirectory(pybind11)
 target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::module)
 
+# Add pybind11
+
 # Create a Python module with a different target name
+add_subdirectory(pybind11)
 set(PYTHON_MODULE_NAME "${PROJECT_NAME}_py")
 pybind11_add_module(${PYTHON_MODULE_NAME} ${API_SOURCES})
 target_include_directories(${PYTHON_MODULE_NAME} PRIVATE "./api/include")

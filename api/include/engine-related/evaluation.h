@@ -4,9 +4,7 @@
 #include <array>
 #include "board/position.h"
 #include "board/bitboard.h"
-#include "move/move.h"
-#include "color.h"
-#include "pieceType.h"
+
 namespace coredump
 {
     // Material values for each piece type (in centipawns)
