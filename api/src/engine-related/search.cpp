@@ -4,9 +4,10 @@ namespace coredump
 {
     // ! This function is where the magic happens. Optimizing its speed is of upmost importance.
     // Negamax with Alpha-Beta Pruning
-    int negamax(Position &pos, int depth, int alpha, int beta, Color color, int ply,
+    int negamax(const Position &pos, int depth, int alpha, int beta, Color color, int ply,
                 std::chrono::high_resolution_clock::time_point startTime, double timeLimit, std::atomic<uint64_t> &nodeCount, std::atomic<uint64_t> &leafNodeCount)
     {
+        Position tempPos(pos);
         nodeCount++;
         // Transposition Table Lookup
         TTEntry *ttEntry = probeTT(pos.computeHash(), depth, alpha, beta);
@@ -60,7 +61,7 @@ namespace coredump
                 continue;
             }
 
-            pos.makeMove(move);
+            tempPos.makeMove(move);
             int searchDepth = depth - 1;
             //  **Late Move Reductions (LMR)**
             if (!isPV && i >= 4 && !move.isCapture && depth >= 3)
@@ -71,7 +72,7 @@ namespace coredump
             // Recursive call to this function but of the other color.
             int score = -negamax(pos, searchDepth, -beta, -alpha, otherColor, ply + 1, startTime, timeLimit, nodeCount, leafNodeCount);
             // One by one, we pop out of the recursive calls and undo each move back up the tree
-            pos.undoMove(move);
+            tempPos.undoMove(move);
 
             if (score >= beta)
             {

@@ -40,10 +40,10 @@ namespace coredump
         Position(const Position &other, const Move &move);
 
         // Getters for on the fly composite bitboards
-        uint64_t getWhitePieces();
-        uint64_t getBlackPieces();
-        uint64_t getOccupiedSquares();
-        uint64_t getEmptySquares();
+        uint64_t getWhitePieces() const;
+        uint64_t getBlackPieces() const;
+        uint64_t getOccupiedSquares() const;
+        uint64_t getEmptySquares() const;
 
         // Function prototypes
         uint64_t computeHash() const;

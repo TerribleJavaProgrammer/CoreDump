@@ -86,10 +86,10 @@ namespace coredump
     }
 
     // Getters for on the fly composite bitboards
-    uint64_t Position::getWhitePieces() { return whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing; }
-    uint64_t Position::getBlackPieces() { return blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing; }
-    uint64_t Position::getOccupiedSquares() { return getWhitePieces() | getBlackPieces(); }
-    uint64_t Position::getEmptySquares() { return ~getOccupiedSquares(); }
+    uint64_t Position::getWhitePieces() const { return whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing; }
+    uint64_t Position::getBlackPieces() const { return blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing; }
+    uint64_t Position::getOccupiedSquares() const { return getWhitePieces() | getBlackPieces(); }
+    uint64_t Position::getEmptySquares() const { return ~getOccupiedSquares(); }
 
     void Position::makeMove(const Move &move)
     {

@@ -2,7 +2,7 @@
 
 namespace coredump
 {
-    std::vector<Move> generateMoves(Position &pos, Color color)
+    std::vector<Move> generateMoves(const Position &pos, Color color)
     {
         std::vector<Move> moveList;
 
@@ -128,7 +128,7 @@ namespace coredump
         return moveList;
     }
 
-    uint64_t getPawnMoves(int square, Color color, uint64_t occupied, Position &pos)
+    uint64_t getPawnMoves(int square, Color color, uint64_t occupied, const Position &pos)
     {
         uint64_t moves = 0ULL;
         uint64_t pawnBB = 1ULL << square;
@@ -253,7 +253,7 @@ namespace coredump
         return moves;
     }
 
-    bool isSquareAttacked(int square, Color attackingColor, Position &pos)
+    bool isSquareAttacked(int square, Color attackingColor, const Position &pos)
     {
         uint64_t occupied = pos.getWhitePieces() | pos.getBlackPieces();
 
