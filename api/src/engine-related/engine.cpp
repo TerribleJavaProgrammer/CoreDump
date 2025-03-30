@@ -75,8 +75,8 @@ namespace coredump
                         0,
                         startTime,
                         timeLimitSeconds,
-                        &nodeCount,
-                        &leafNodeCount
+                        nodeCount,
+                        leafNodeCount
                     );
                     leafNodeCount++;
 
