@@ -414,33 +414,33 @@ namespace coredump
             {
                 int square = rank * 8 + file; // Convert rank/file to square index
                 if (getBit(whitePawns, square))
-                    returnable.append("P "); // White pawn
+                    returnable.append("♙ "); // White pawn
                 else if (getBit(whiteKnights, square))
-                    returnable.append("N "); // White knight
+                    returnable.append("♘ "); // White knight
                 else if (getBit(whiteBishops, square))
-                    returnable.append("B "); // White bishop
+                    returnable.append("♗ "); // White bishop
                 else if (getBit(whiteRooks, square))
-                    returnable.append("R "); // White rook
+                    returnable.append("♖ "); // White rook
                 else if (getBit(whiteQueens, square))
-                    returnable.append("Q "); // White queen
+                    returnable.append("♕ "); // White queen
                 else if (getBit(whiteKing, square))
-                    returnable.append("K "); // White king
+                    returnable.append("♔ "); // White king
                 else if (getBit(blackPawns, square))
-                    returnable.append("p "); // Black pawn
+                    returnable.append("♟ "); // Black pawn
                 else if (getBit(blackKnights, square))
-                    returnable.append("n "); // Black knight
+                    returnable.append("♞ "); // Black knight
                 else if (getBit(blackBishops, square))
-                    returnable.append("b "); // Black bishop
+                    returnable.append("♝ "); // Black bishop
                 else if (getBit(blackRooks, square))
-                    returnable.append("r "); // Black rook
+                    returnable.append("♜ "); // Black rook
                 else if (getBit(blackQueens, square))
-                    returnable.append("q "); // Black queen
+                    returnable.append("♛ "); // Black queen
                 else if (getBit(blackKing, square))
-                    returnable.append("k "); // Black king
+                    returnable.append("♚ "); // Black king
                 else
                     returnable.append(". "); // Empty square
             }
-            returnable.append("/");
+            returnable.append("\n");
         }
         return returnable;
     }

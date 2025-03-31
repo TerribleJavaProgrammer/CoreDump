@@ -7,10 +7,10 @@
 // namespace py = pybind11;
 namespace cd = coredump;
 
-#define MAX_DEPTH 6
-#define MAX_TIME 200
+#define MAX_DEPTH 2
+#define MAX_TIME 5
 #define DEBUG true
-#define USE_HUMAN false
+#define USE_HUMAN true
 
 namespace coredump
 {
@@ -67,7 +67,7 @@ namespace coredump
 
 		if (moveIt == legalMoves.end())
 		{
-			std::cout << "Illegal move." << legalMoves.size() << '\n';
+			std::cout << "Illegal move." << std::endl;
 			return 1;
 		}
 
@@ -189,11 +189,15 @@ namespace coredump
 				// AI's turn
 				std::cout << "AI is thinking...\n";
 				std::vector<Move> legalMoves = generateMoves(currentPosition, currentPlayer);
+
 				std::cout << "Legal moves: " << legalMoves.size() << std::endl;
 				// print all the legal moves in algebraic notation
 				for (const auto &m : legalMoves)
 				{
-					std::cout << Move::toAlgebraic(m.fromSquare) << " " << Move::toAlgebraic(m.toSquare) << std::endl;
+					Position tempPos(currentPosition);
+					tempPos.makeMove(m);
+					int evaluation = evaluatePosition(tempPos, currentPlayer);
+					std::cout << Move::toAlgebraic(m.fromSquare) << " " << Move::toAlgebraic(m.toSquare) << " scores " << evaluation << std::endl;
 				}
 
 				move = findBestMove(currentPosition, currentPlayer, MAX_DEPTH, MAX_TIME, DEBUG);
