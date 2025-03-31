@@ -82,8 +82,8 @@ def game_loop(current_position, current_player, human_color, full_move_counter, 
     #     print("FIFTY MOVE RULE!")
     #     break
 
-    print("\033[7m", end="")
-    print(current_position.display_position())
+    print("\033[7m")
+    print(current_position.display_position(), end="")
     print("\033[0m") # Reset color
     print(current_position.get_fen(current_player, halfmove_clock, full_move_counter, "", ""))
     print(pgn)
