@@ -29,15 +29,16 @@ namespace coredump
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             // Handle promotion
-                            if (color == Color::WHITE && targetSquare >= 56)
+                            if ((color == Color::WHITE && targetSquare >= 56) || (color == Color::BLACK && targetSquare <= 7))
                             {
                                 move.isPromotion = true;
-                                move.promotionPiece = PieceType::QUEEN; // Default to queen
-                            }
-                            else if (color == Color::BLACK && targetSquare <= 7)
-                            {
-                                move.isPromotion = true;
-                                move.promotionPiece = PieceType::QUEEN; // Default to queen
+                                if (move.promotionPiece == PieceType::NONE ||
+                                    move.promotionPiece == PieceType::PAWN ||
+                                    move.promotionPiece == PieceType::KING)
+                                {
+                                    // Default to queen if no valid promotion piece is set
+                                    move.promotionPiece = PieceType::QUEEN;
+                                }
                             }
                             moveList.push_back(move);
                         }

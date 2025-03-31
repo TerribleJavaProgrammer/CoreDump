@@ -3,4 +3,4 @@ cd build
 make -j$(nproc)
 cd ..
 #./build/core_dump
-python ./test.py
+python ./console.py

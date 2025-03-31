@@ -13,9 +13,9 @@ namespace coredump
     }
 
     int Move::fromAlgebraic(char file, char rank)
-	{
-		return (rank - '1') * 8 + file - 'a';
-	}
+    {
+        return (rank - '1') * 8 + file - 'a';
+    }
 
     // Constructor
     Move::Move(int from, int to, bool capture, PieceType type, Color col, bool castling,
@@ -31,6 +31,19 @@ namespace coredump
           prevBlackPieces(prevBlack), prevOccupied(prevOccupiedSquares),
           prevEnPassantSquare(enPassantSquare), prevCastlingRights(castlingRights),
           prevKingSquare(kingSquare) {}
+
+    // Constructor from string
+    Move::Move(std::string moveStr, Color col)
+        : Move() // Use the default constructor to initialize all fields
+    {
+        if (moveStr.length() != 5 || moveStr[2] != ' ')
+        {
+            throw std::invalid_argument("Invalid move format. Expected format: 'a1 a2'");
+        }
+        fromSquare = fromAlgebraic(moveStr[0], moveStr[1]);
+        toSquare = fromAlgebraic(moveStr[3], moveStr[4]);
+        color = col;
+    }
 
     // Default constructor
     Move::Move()

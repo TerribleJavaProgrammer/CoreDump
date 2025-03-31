@@ -8,17 +8,17 @@ namespace coredump
         BLACK
     };
 
-    inline Color invertColor(Color color)
+    constexpr inline Color invertColor(Color color)
     {
         return color == Color::WHITE ? Color::BLACK : Color::WHITE;
     }
 
-    inline const char* colorToString(Color color)
+    constexpr inline const char *colorToString(Color color)
     {
         return color == Color::WHITE ? "White" : "Black";
     }
 
-    inline const char* colorToChar(Color color)
+    constexpr inline const char *colorToChar(Color color)
     {
         return color == Color::WHITE ? "w" : "b";
     }

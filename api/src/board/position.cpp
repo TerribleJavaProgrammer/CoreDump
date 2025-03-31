@@ -405,7 +405,7 @@ namespace coredump
     // Uses Unicode chess pieces and coordinate system (a-h, 1-8)
     std::string Position::displayPosition()
     {
-        std::string returnable = "";
+        std::ostringstream retval;
         // Loop through ranks from top (8) to bottom (1)
         for (int rank = 7; rank >= 0; --rank)
         {
@@ -414,35 +414,35 @@ namespace coredump
             {
                 int square = rank * 8 + file; // Convert rank/file to square index
                 if (getBit(whitePawns, square))
-                    returnable.append("♙ "); // White pawn
+                    retval << ("♙ "); // White pawn
                 else if (getBit(whiteKnights, square))
-                    returnable.append("♘ "); // White knight
+                    retval << ("♘ "); // White knight
                 else if (getBit(whiteBishops, square))
-                    returnable.append("♗ "); // White bishop
+                    retval << ("♗ "); // White bishop
                 else if (getBit(whiteRooks, square))
-                    returnable.append("♖ "); // White rook
+                    retval << ("♖ "); // White rook
                 else if (getBit(whiteQueens, square))
-                    returnable.append("♕ "); // White queen
+                    retval << ("♕ "); // White queen
                 else if (getBit(whiteKing, square))
-                    returnable.append("♔ "); // White king
+                    retval << ("♔ "); // White king
                 else if (getBit(blackPawns, square))
-                    returnable.append("♟ "); // Black pawn
+                    retval << ("♟ "); // Black pawn
                 else if (getBit(blackKnights, square))
-                    returnable.append("♞ "); // Black knight
+                    retval << ("♞ "); // Black knight
                 else if (getBit(blackBishops, square))
-                    returnable.append("♝ "); // Black bishop
+                    retval << ("♝ "); // Black bishop
                 else if (getBit(blackRooks, square))
-                    returnable.append("♜ "); // Black rook
+                    retval << ("♜ "); // Black rook
                 else if (getBit(blackQueens, square))
-                    returnable.append("♛ "); // Black queen
+                    retval << ("♛ "); // Black queen
                 else if (getBit(blackKing, square))
-                    returnable.append("♚ "); // Black king
+                    retval << ("♚ "); // Black king
                 else
-                    returnable.append(". "); // Empty square
+                    retval << (". "); // Empty square
             }
-            returnable.append("\n");
+            retval << ("\n");
         }
-        return returnable;
+        return retval.str();
     }
 
     std::string Position::getFen(Color toMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget)

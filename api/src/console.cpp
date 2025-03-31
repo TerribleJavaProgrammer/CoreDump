@@ -7,23 +7,6 @@
 
 namespace coredump
 {
-    inline PieceType getPromotionPiece(char piece)
-    {
-        switch (piece)
-        {
-        case 'Q':
-            return PieceType::QUEEN;
-        case 'N':
-            return PieceType::KNIGHT;
-        case 'B':
-            return PieceType::BISHOP;
-        case 'R':
-            return PieceType::ROOK;
-        default:
-            return PieceType::NONE;
-        }
-    }
-
     // 0 is valid, 1 is invalid move, -1 is quit
     int makeHumanTurn(const Position &currentPosition, Color currentPlayer, Move &move)
     {
@@ -112,6 +95,18 @@ namespace coredump
         if (tolower(choice) == 'b')
         {
             humanColor = Color::BLACK;
+        }
+
+        // print out who plays who
+        std::cout << "You are playing as " << colorToString(humanColor) << std::endl;
+        std::cout << "AI is playing as " << colorToString(invertColor(humanColor)) << std::endl;
+        if (humanColor == Color::WHITE)
+        {
+            std::cout << "You play first" << std::endl;
+        }
+        else
+        {
+            std::cout << "AI plays first" << std::endl;
         }
 
         // Main game loop
