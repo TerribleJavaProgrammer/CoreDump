@@ -7,10 +7,10 @@
 // namespace py = pybind11;
 namespace cd = coredump;
 
-#define MAX_DEPTH 7
+#define MAX_DEPTH 6
 #define MAX_TIME 200
 #define DEBUG true
-#define USE_HUMAN true
+#define USE_HUMAN false
 
 namespace coredump
 {
@@ -97,7 +97,7 @@ namespace coredump
 		// Initialize the position
 		Position currentPosition;
 
-		// TODO make this runa more automatically for when in the pybind module
+		// TODO make this run more automatically for when in the pybind module
 		initializeMagicBitboards();
 
 		Color currentPlayer = Color::WHITE; // White moves first
@@ -124,20 +124,24 @@ namespace coredump
 			std::cout << "Move " << fullmoveCounter << std::endl;
 
 			std::cout << colorToString(currentPlayer) << " to move\n";
-			if (isInCheck(currentPosition, currentPlayer))
+
+			int status = checkEndgameConditions(currentPosition, currentPlayer);
+			if (status == 1)
 			{
 				std::cout << "CHECK!\n";
 			}
+			else if (status == 2)
+			{
+				std::cout << "CHECKMATE! " << colorToString(invertColor(currentPlayer)) << " wins." << std::endl;
+				break;
+			}
+			else if (status == 3)
+			{
+				std::cout << "STALEMATE! Nobody wins" << std::endl;
+				break;
+			}
 
-			// TODO add endgame conditions
-			// if (isInCheckmate(currentPosition, currentPlayer)) {
-			// 	std::cout << "CHECKMATE!\n";
-			// 	break;
-			// }
-			// else if (isStalemate(currentPosition, currentPlayer)) {
-			// 	std::cout << "STALEMATE!\n";
-			// 	break;
-			// }
+			// TODO add more endgame conditions
 			// else if (isInsufficientMaterial(currentPosition)) {
 			// 	std::cout << "INSUFFICIENT MATERIAL!\n";
 			// 	break;
@@ -153,6 +157,8 @@ namespace coredump
 
 			std::cout << currentPosition.displayPosition() << std::endl;
 			std::cout << currentPosition.getFen(currentPlayer, halfmoveClock, fullmoveCounter, "", "") << std::endl;
+			std::cout << "PGN:\n";
+			std::cout << pgn.str() << std::endl;
 
 			// Determine if it's human's turn
 			bool isHumanTurn = (currentPlayer == humanColor) && USE_HUMAN;
@@ -182,6 +188,14 @@ namespace coredump
 			{
 				// AI's turn
 				std::cout << "AI is thinking...\n";
+				std::vector<Move> legalMoves = generateMoves(currentPosition, currentPlayer);
+				std::cout << "Legal moves: " << legalMoves.size() << std::endl;
+				// print all the legal moves in algebraic notation
+				for (const auto &m : legalMoves)
+				{
+					std::cout << Move::toAlgebraic(m.fromSquare) << " " << Move::toAlgebraic(m.toSquare) << std::endl;
+				}
+
 				move = findBestMove(currentPosition, currentPlayer, MAX_DEPTH, MAX_TIME, DEBUG);
 				// Convert move to algebraic notation for display
 				std::string moveStr = Move::toAlgebraic(move.fromSquare) + " " + Move::toAlgebraic(move.toSquare);
@@ -190,25 +204,6 @@ namespace coredump
 
 			// Make the selected move
 			currentPosition.makeMove(move);
-
-			// Check for game end conditions
-
-			// Check if the other player is in check after this player's move
-			std::vector<Move> nextMoves = generateMoves(currentPosition, invertColor(currentPlayer));
-			if (nextMoves.empty())
-			{
-				if (isInCheck(currentPosition, currentPlayer))
-				{
-					std::cout << "\nCheckmate! "
-							  << (currentPlayer == Color::WHITE ? "Black" : "White")
-							  << " wins!\n";
-				}
-				else
-				{
-					std::cout << "\nStalemate! Game is a draw.\n";
-				}
-				break;
-			}
 
 			// update pgn
 			if (currentPlayer == Color::WHITE)

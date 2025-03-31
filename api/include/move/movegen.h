@@ -27,6 +27,7 @@ namespace coredump
     bool isSquareAttacked(int square, Color, const Position &pos);
     bool wouldLeaveKingInCheck(const Position &pos, const Move &move);
     bool isInCheck(const Position &pos, Color);
+    int checkEndgameConditions(const Position &pos, Color);
 
     inline uint64_t getRookMoves(int square, uint64_t occupied)
     {

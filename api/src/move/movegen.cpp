@@ -323,4 +323,22 @@ namespace coredump
         const Position tempPos(pos, move);
         return isInCheck(tempPos, move.color); // Check if the move leaves the king in check;
     }
+
+    // 0 is safe, 1 is check, 2 is checkmate, 3 is stalemate
+    int checkEndgameConditions(const Position &pos, Color color)
+    {
+        std::vector<Move> nextMoves = generateMoves(pos, color);
+        if (nextMoves.empty())
+        {
+            if (isInCheck(pos, color))
+            {
+                return 1; // Checkmate
+            }
+            else
+            {
+                return 2; // Stalemate
+            }
+        }
+        return 0; // No checkmate or stalemate
+    }
 }
