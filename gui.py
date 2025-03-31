@@ -9,6 +9,9 @@ PIECE_SYMBOLS = {
     'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
 }
 
+MAX_DEPTH = 3
+MAX_TIME = 5
+
 def square_to_index(rc: tuple[int, int]):
     """
     Args:
@@ -65,16 +68,20 @@ class ChessBoard:
 
     def on_square_click(self, row: int, col: int):
         if self.selected_square:
-            self.try_move_piece(self.selected_square, (row, col))
+            success = self.try_move_piece(square_to_index(self.selected_square), square_to_index((row, col)))
             self.selected_square = None
+            self.update_board()
+            if (success):
+                self.yield_to_engine()
+            
         else:
             # Select the clicked square
             self.selected_square = (row, col)
-        self.update_board()
+            self.update_board()
 
-    def try_move_piece(self, from_square: tuple[int, int], to_square: tuple[int, int]):
+    def try_move_piece(self, from_idx: int, to_idx: int):
         # Create a move object
-        move = Move(square_to_index(from_square), square_to_index(to_square), self.current_player)
+        move = Move(from_idx, to_idx, self.current_player)
 
         # Check if the move is legal
         (legal, move) = self.is_legal_move(move)
@@ -91,6 +98,15 @@ class ChessBoard:
             self.full_move_counter += 1
 
         return True
+    
+    def yield_to_engine(self):
+        print("AI is thinking...")
+        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, True)
+        print(debugOut)
+        # Convert move to algebraic notation for display
+        self.try_move_piece(move.from_square, move.to_square)
+        print(f"Computer plays: {Move.to_algebraic(move.from_square)} {Move.to_algebraic(move.to_square)}")
+        self.update_board()
     
     def is_legal_move(self, move):
         legal_moves = cd.generate_moves(self.position, self.current_player)
