@@ -24,15 +24,15 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development)
 add_subdirectory(pybind11)
 
 # Create the console app executable
-add_executable(${PROJECT_NAME} ${API_SOURCES})
+#add_executable(${PROJECT_NAME} ${API_SOURCES})
 
 # Create a Python module with a different target name
 set(PYTHON_MODULE_NAME "${PROJECT_NAME}_py")
 pybind11_add_module(${PYTHON_MODULE_NAME} ${API_SOURCES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE "api/include")
-target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::module)
-target_link_libraries(${PROJECT_NAME} PRIVATE Python::Python)
+#target_include_directories(${PROJECT_NAME} PRIVATE "api/include")
+#target_link_libraries(${PROJECT_NAME} PRIVATE pybind11::module)
+#target_link_libraries(${PROJECT_NAME} PRIVATE Python::Python)
 
 target_include_directories(${PYTHON_MODULE_NAME} PRIVATE "api/include")
 target_link_libraries(${PYTHON_MODULE_NAME} PRIVATE pybind11::module)

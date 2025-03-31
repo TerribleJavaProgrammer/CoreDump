@@ -193,7 +193,12 @@ namespace coredump
                     std::cout << Move::toAlgebraic(m.fromSquare) << " " << Move::toAlgebraic(m.toSquare) << " scores " << evaluation << std::endl;
                 }
 
-                move = findBestMove(currentPosition, currentPlayer, MAX_DEPTH, MAX_TIME, DEBUG);
+                std::ostringstream debugStream;
+                move = findBestMove(currentPosition, currentPlayer, MAX_DEPTH, MAX_TIME, DEBUG, debugStream);
+                if (DEBUG)
+                {
+                    std::cout << debugStream.str() << std::endl;
+                }
                 // Convert move to algebraic notation for display
                 std::string moveStr = Move::toAlgebraic(move.fromSquare) + " " + Move::toAlgebraic(move.toSquare);
                 std::cout << "Computer plays: " << moveStr << std::endl;

@@ -4,7 +4,7 @@ from build.core_dump_py import Color, PieceType, Move, Position
 # Initialize important setup, like magic bitboards
 cd.engine_init()
 
-MAX_DEPTH = 2
+MAX_DEPTH = 3
 MAX_TIME = 5
 DEBUG = False
 USE_HUMAN = False
@@ -107,7 +107,9 @@ def game_loop(current_position, current_player, human_color, full_move_counter, 
         if CHOOSE_RANDOMLY:
             move = cd.find_random_move(current_position, current_player)
         else:
-            move = cd.find_best_move(current_position, current_player, MAX_DEPTH, MAX_TIME, DEBUG)
+            move, debugOut = cd.find_best_move(current_position, current_player, MAX_DEPTH, MAX_TIME, DEBUG)
+            if (DEBUG):
+                print(debugOut)
         # Convert move to algebraic notation for display
         move_str = f"{Move.to_algebraic(move.from_square)} {Move.to_algebraic(move.to_square)}"
         print(f"\033[41mComputer plays: {move_str} \033[0m")

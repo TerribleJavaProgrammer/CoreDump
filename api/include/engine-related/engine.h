@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <map>
 #include <algorithm>
@@ -20,6 +21,6 @@
 
 namespace coredump
 {
-    Move findBestMove(const Position &position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
+    Move findBestMove(const Position &position, Color color, int maxDepth, double timeLimitSeconds, bool debug, std::ostringstream &debugStream);
     Move findRandomMove(const Position &position, Color color);
 }

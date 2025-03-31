@@ -16,7 +16,12 @@ PYBIND11_MODULE(core_dump_py, handle)
 	handle.def("engine_init", []()
 			   { cd::initializeMagicBitboards(); });
 
-	handle.def("find_best_move", &cd::findBestMove);
+	handle.def("find_best_move", [](const cd::Position &position, cd::Color color, int maxDepth, double timeLimitSeconds, bool debug)
+			   {
+		std::ostringstream debugStream;
+		cd::Move move = cd::findBestMove(position, color, maxDepth, timeLimitSeconds, debug, debugStream);
+		return py::make_tuple(move, debugStream.str()); });
+
 	handle.def("find_random_move", &cd::findRandomMove);
 	handle.def("generate_moves", &cd::generateMoves);
 	handle.def("check_endgame_conditions", &cd::checkEndgameConditions);
