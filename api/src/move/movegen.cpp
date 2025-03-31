@@ -28,6 +28,17 @@ namespace coredump
                         Move move(square, targetSquare, isCapture, PieceType::PAWN, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
+                            // Handle promotion
+                            if (color == Color::WHITE && targetSquare >= 56)
+                            {
+                                move.isPromotion = true;
+                                move.promotionPiece = PieceType::QUEEN; // Default to queen
+                            }
+                            else if (color == Color::BLACK && targetSquare <= 7)
+                            {
+                                move.isPromotion = true;
+                                move.promotionPiece = PieceType::QUEEN; // Default to queen
+                            }
                             moveList.push_back(move);
                         }
                     }
