@@ -48,5 +48,8 @@ namespace coredump
 
         std::string getPgn();
         bool operator==(const Move &other) const;
+
+        static std::string toAlgebraic(int square);
+        static int fromAlgebraic(char file, char rank);
     };
 }

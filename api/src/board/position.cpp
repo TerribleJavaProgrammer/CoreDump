@@ -445,7 +445,7 @@ namespace coredump
         return returnable;
     }
 
-    std::string Position::getFen(bool whiteToMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget)
+    std::string Position::getFen(Color toMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget)
     {
         std::ostringstream fen;
         // Encode board position
@@ -481,7 +481,7 @@ namespace coredump
         }
 
         // Active color
-        fen << ' ' << (whiteToMove ? 'w' : 'b');
+        fen << ' ' << colorToChar(toMove);
 
         // Castling availability
         fen << ' ' << (castlingRights.empty() ? "-" : castlingRights);

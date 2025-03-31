@@ -48,7 +48,7 @@ namespace coredump
         // Function prototypes
         uint64_t computeHash() const;
         std::string displayPosition();
-        std::string getFen(bool whiteToMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget);
+        std::string getFen(Color toMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget);
 
         // Move modifiers
         void makeMove(const Move &move);

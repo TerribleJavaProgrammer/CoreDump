@@ -2,7 +2,7 @@
 
 namespace coredump
 {
-    std::string toAlgebraic(int square)
+    std::string Move::toAlgebraic(int square)
     {
         std::string algebraic = "";
         char file = square % 8 + 'a';
@@ -11,6 +11,11 @@ namespace coredump
         algebraic += rank;
         return algebraic;
     }
+
+    int Move::fromAlgebraic(char file, char rank)
+	{
+		return (rank - '1') * 8 + file - 'a';
+	}
 
     // Constructor
     Move::Move(int from, int to, bool capture, PieceType type, Color col, bool castling,
