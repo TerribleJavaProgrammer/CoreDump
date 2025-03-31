@@ -51,41 +51,41 @@ namespace coredump
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= PAWN_VALUE + PAWN_PST[mirror(square)];
+            score += PAWN_VALUE + PAWN_PST[mirror(square)];
         }
         pieces = pos.blackKnights;
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= KNIGHT_VALUE + KNIGHT_PST[mirror(square)];
+            score += KNIGHT_VALUE + KNIGHT_PST[mirror(square)];
         }
         pieces = pos.blackBishops;
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= BISHOP_VALUE + BISHOP_PST[mirror(square)];
+            score += BISHOP_VALUE + BISHOP_PST[mirror(square)];
         }
         pieces = pos.blackRooks;
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= ROOK_VALUE + ROOK_PST[mirror(square)];
+            score += ROOK_VALUE + ROOK_PST[mirror(square)];
         }
         pieces = pos.blackQueens;
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= QUEEN_VALUE + QUEEN_PST[mirror(square)];
+            score += QUEEN_VALUE + QUEEN_PST[mirror(square)];
         }
         pieces = pos.blackKing;
         while (pieces)
         {
             square = popLSB(pieces);
-            score -= KING_PST[mirror(square)];
+            score += KING_PST[mirror(square)];
         }
 
         // Negate for Black's perspective
-        return (color == Color::WHITE) ? score : -score;
+        return (color == Color::WHITE) ? -score : score;
     }
 
     // Mirroring function for black's perspective (flips board vertically)
