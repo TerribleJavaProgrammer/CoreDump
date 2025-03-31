@@ -340,17 +340,22 @@ namespace coredump
     int checkEndgameConditions(const Position &pos, Color color)
     {
         std::vector<Move> nextMoves = generateMoves(pos, color);
+        bool isCheck = isInCheck(pos, color);
         if (nextMoves.empty())
         {
-            if (isInCheck(pos, color))
+            if (isCheck)
             {
-                return 1; // Checkmate
+                return 2; // Checkmate
             }
             else
             {
-                return 2; // Stalemate
+                return 3; // Stalemate
             }
         }
-        return 0; // No checkmate or stalemate
+        if (isCheck)
+        {
+            return 1; // Check
+        }
+        return 0; // Safe
     }
 }
