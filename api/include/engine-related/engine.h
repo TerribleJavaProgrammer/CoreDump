@@ -21,4 +21,5 @@
 namespace coredump
 {
     Move findBestMove(const Position &position, Color color, int maxDepth, double timeLimitSeconds, bool debug);
+    Move findRandomMove(const Position &position, Color color);
 }

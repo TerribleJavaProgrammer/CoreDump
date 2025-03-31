@@ -17,6 +17,7 @@ PYBIND11_MODULE(core_dump_py, handle)
 			   { cd::initializeMagicBitboards(); });
 
 	handle.def("find_best_move", &cd::findBestMove);
+	handle.def("find_random_move", &cd::findRandomMove);
 	handle.def("generate_moves", &cd::generateMoves);
 	handle.def("check_endgame_conditions", &cd::checkEndgameConditions);
 	handle.def("invert_color", &cd::invertColor);

@@ -2,6 +2,19 @@
 
 namespace coredump
 {
+    Move findRandomMove(const Position &position, Color color)
+    {
+        // generate all root moves, sort them, and then choose the first one
+        std::vector<Move> rootMoves = generateMoves(position, color);
+        sortMoves(rootMoves, position, 0, color);
+        if (rootMoves.empty())
+        {
+            throw std::runtime_error("No valid moves available");
+            return Move(-1, -1, false, PieceType::NONE, color, false); // No valid moves
+        }
+        return rootMoves[0];
+    }
+
     Move findBestMove(const Position &position, Color color, int maxDepth, double timeLimitSeconds, bool debug)
     {
         std::atomic<uint64_t> nodeCount{0};
@@ -11,6 +24,11 @@ namespace coredump
         Position initialPos = threadPos.get();
 
         std::vector<Move> rootMoves = generateMoves(initialPos, color);
+        if (rootMoves.empty())
+        {
+            throw std::runtime_error("No valid moves available");
+            return Move(-1, -1, false, PieceType::NONE, color, false); // No valid moves
+        }
         sortMoves(rootMoves, initialPos, 0, color);
         if (debug)
         {
