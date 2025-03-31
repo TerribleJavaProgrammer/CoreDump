@@ -14,7 +14,6 @@ namespace cd = coredump;
 
 namespace coredump
 {
-
 	PieceType getPromotionPiece(char piece)
 	{
 		switch (piece)
@@ -30,6 +29,67 @@ namespace coredump
 		default:
 			return PieceType::NONE;
 		}
+	}
+
+	// 0 is valid, 1 is invalid move, -1 is quit
+	int makeHumanTurn(const Position &currentPosition, Color currentPlayer, Move &move)
+	{
+		std::cout << "\nCommands:" << std::endl;
+		std::cout << "- Make move: e2 e4" << std::endl;
+		// std::cout << "- Show moves for square: moves e2" << std::endl;
+		std::cout << "- Quit: quit> " << std::endl;
+		std::string input = "";
+		std::getline(std::cin, input);
+
+		if (input == "quit")
+		{
+			std::cout << "Quitting the game" << std::endl;
+			return -1;
+		}
+		// Handle move command
+		if (input.length() != 5 || input[2] != ' ')
+		{
+			std::cout << "Invalid move format. Use 'e2 e4'\n";
+			return 1;
+		}
+
+		// Create move to check legality
+		move.fromSquare = Move::fromAlgebraic(input[0], input[1]);
+		move.toSquare = Move::fromAlgebraic(input[3], input[4]);
+		move.color = currentPlayer;
+
+		std::vector<Move> legalMoves = generateMoves(currentPosition, currentPlayer);
+		auto moveIt = std::find_if(legalMoves.begin(), legalMoves.end(),
+								   [&move](const Move &m)
+								   {
+									   return m.fromSquare == move.fromSquare && m.toSquare == move.toSquare;
+								   });
+
+		if (moveIt == legalMoves.end())
+		{
+			std::cout << "Illegal move." << legalMoves.size() << '\n';
+			return 1;
+		}
+
+		move = *moveIt; // Copy extra properties from legal move
+
+		// Handle pawn promotion
+		if (move.isPromotion)
+		{
+			std::cout << "Choose promotion piece Q(ueen), R(ook), B(ishop), k(N)ight: ";
+			char choice;
+			std::cin >> choice;
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+			move.promotionPiece = getPromotionPiece(choice);
+			if (move.promotionPiece == PieceType::NONE)
+			{
+				std::cout << "Invalid promotion piece. Defaulting to Queen.\n";
+				move.promotionPiece = PieceType::QUEEN;
+			}
+		}
+
+		return 0; // Valid move
 	}
 
 	int sub_main()
@@ -99,59 +159,23 @@ namespace coredump
 			Move move;
 			if (isHumanTurn)
 			{
-				std::cout << "\nCommands:" << std::endl;
-				std::cout << "- Make move: e2 e4" << std::endl;
-				std::cout << "- Show moves for square: moves e2" << std::endl;
-				std::cout << "- Quit: quit> " << std::endl;
-				std::string input = "";
-				std::getline(std::cin, input);
-
-				if (input == "quit")
+				bool quit = false;
+				while (true)
 				{
-					std::cout << "Quitting the game" << std::endl;
-					break;
-				}
-				// Handle move command
-				if (input.length() != 5 || input[2] != ' ')
-				{
-					std::cout << "Invalid move format. Use 'e2 e4'\n";
-					continue; // TODO make another while loop for getting human input
-				}
-
-				// Create move to check legality
-				move.fromSquare = Move::fromAlgebraic(input[0], input[1]);
-				move.toSquare = Move::fromAlgebraic(input[3], input[4]);
-				move.color = currentPlayer;
-
-				std::vector<Move> legalMoves = generateMoves(currentPosition, currentPlayer);
-				auto moveIt = std::find_if(legalMoves.begin(), legalMoves.end(),
-										   [&move](const Move &m)
-										   {
-											   return m.fromSquare == move.fromSquare && m.toSquare == move.toSquare;
-										   });
-
-				if (moveIt == legalMoves.end())
-				{
-					std::cout << "Illegal move." << legalMoves.size() << '\n';
-					continue; // TODO make another while loop for getting human input
-				}
-
-				move = *moveIt; // Copy extra properties from legal move
-
-				// Handle pawn promotion
-				if (move.isPromotion)
-				{
-					std::cout << "Choose promotion piece Q(ueen), R(ook), B(ishop), k(N)ight: ";
-					char choice;
-					std::cin >> choice;
-					std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-					move.promotionPiece = getPromotionPiece(choice);
-					if (move.promotionPiece == PieceType::NONE)
+					int status = makeHumanTurn(currentPosition, currentPlayer, move);
+					if (status == 0)
 					{
-						std::cout << "Invalid promotion piece. Defaulting to Queen.\n";
-						move.promotionPiece = PieceType::QUEEN;
+						break; // Move was made successfully
 					}
+					else if (status == -1)
+					{
+						quit = true;
+						break;
+					}
+				}
+				if (quit)
+				{
+					break;
 				}
 			}
 			else
@@ -210,7 +234,7 @@ namespace coredump
 int main()
 {
 	std::cout << "==========STARTING ENGINE==========" << std::endl;
-	return coredump::sub_main();
+	return cd::sub_main();
 }
 
 // PYBIND11_MODULE(core_dump, handle)
