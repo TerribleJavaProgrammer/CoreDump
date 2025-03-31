@@ -43,7 +43,7 @@ namespace coredump
                     bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                     if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                     { // Valid capture or empty square
-                        Move move(square, targetSquare, false, PieceType::KNIGHT, color, isCapture);
+                        Move move(square, targetSquare, isCapture, PieceType::KNIGHT, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             moveList.push_back(move);
@@ -61,7 +61,7 @@ namespace coredump
                     bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                     if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                     { // Valid capture or empty square
-                        Move move(square, targetSquare, false, PieceType::BISHOP, color, isCapture);
+                        Move move(square, targetSquare, isCapture, PieceType::BISHOP, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             moveList.push_back(move);
@@ -79,7 +79,7 @@ namespace coredump
                     bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                     if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                     { // Valid capture or empty square
-                        Move move(square, targetSquare, false, PieceType::ROOK, color, isCapture);
+                        Move move(square, targetSquare, isCapture, PieceType::ROOK, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             moveList.push_back(move);
@@ -97,7 +97,7 @@ namespace coredump
                     bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                     if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                     { // Valid capture or empty square
-                        Move move(square, targetSquare, false, PieceType::QUEEN, color, isCapture);
+                        Move move(square, targetSquare, isCapture, PieceType::QUEEN, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             moveList.push_back(move);
@@ -115,7 +115,7 @@ namespace coredump
                     bool isCapture = (enemyPieces & (1ULL << targetSquare)) != 0; // Check for enemy piece
                     if (isCapture || !(ourPieces & (1ULL << targetSquare)))
                     { // Valid capture or empty square
-                        Move move(square, targetSquare, false, PieceType::KING, color, isCapture);
+                        Move move(square, targetSquare, isCapture, PieceType::KING, color, false);
                         if (!wouldLeaveKingInCheck(pos, move))
                         {
                             moveList.push_back(move);
