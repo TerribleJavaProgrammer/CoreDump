@@ -63,11 +63,9 @@ namespace coredump
                     size_t index = moveIndex.fetch_add(1);  
                     if (index >= rootMoves.size()) break;
 
-                    // Build a position with the move applied
-                    Position tempPos(localPosition, rootMoves[index]);
-
+                    localPosition.makeMove(rootMoves[index]);
                     int score = -negamax(
-                        tempPos,
+                        localPosition,
                         depth,
                         -KING_VALUE * 2,
                         KING_VALUE * 2,
@@ -78,6 +76,7 @@ namespace coredump
                         nodeCount,
                         leafNodeCount
                     );
+                    localPosition.undoMove(rootMoves[index]);
                     leafNodeCount++;
 
                     if (score > bestScore) {
