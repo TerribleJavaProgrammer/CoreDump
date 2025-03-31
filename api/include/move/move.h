@@ -43,6 +43,8 @@ namespace coredump
              uint64_t prevBlack = 0, uint64_t prevOccupiedSquares = 0,
              int enPassantSquare = -1, uint8_t castlingRights = 0, int kingSquare = -1);
 
+        Move(int from, int to, Color col);
+
         Move(std::string moveStr, Color col);
 
         // Default constructor

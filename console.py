@@ -6,7 +6,7 @@ cd.engine_init()
 
 MAX_DEPTH = 3
 MAX_TIME = 5
-DEBUG = False
+DEBUG = True 
 USE_HUMAN = False
 CHOOSE_RANDOMLY = False
 

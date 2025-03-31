@@ -32,6 +32,13 @@ namespace coredump
           prevEnPassantSquare(enPassantSquare), prevCastlingRights(castlingRights),
           prevKingSquare(kingSquare) {}
 
+    Move::Move(int from, int to, Color col) : Move()
+    {
+        fromSquare = from;
+        toSquare = to;
+        color = col;
+    }
+
     // Constructor from string
     Move::Move(std::string moveStr, Color col)
         : Move() // Use the default constructor to initialize all fields

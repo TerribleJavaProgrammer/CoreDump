@@ -20,12 +20,8 @@ namespace coredump
         bitboard &= ~captureBB; // Remove captured piece from its square
     }
 
-    class Position
+    struct Position
     {
-    private:
-        char getSquareChar(int square);
-
-    public:
         // Public bitboard fields
         uint64_t whitePawns, whiteKnights, whiteBishops, whiteRooks, whiteQueens, whiteKing;
         uint64_t blackPawns, blackKnights, blackBishops, blackRooks, blackQueens, blackKing;
@@ -49,6 +45,7 @@ namespace coredump
         uint64_t computeHash() const;
         std::string displayPosition();
         std::string getFen(Color toMove, int halfmoveClock, int fullmoveNumber, std::string castlingRights, std::string enPassantTarget);
+        char getSquareChar(int square);
 
         // Move modifiers
         void makeMove(const Move &move);
