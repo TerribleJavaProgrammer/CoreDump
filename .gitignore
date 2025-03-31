@@ -14,5 +14,6 @@
 out/
 # ignore env files
 env/
-# ignore pycache
-GUI/API/__pycache__/*
+# ignore build directory
+build/
+.vscode/settings.json
