@@ -76,13 +76,17 @@ namespace coredump
         std::ostringstream pgn;
         if (castlingType == CastlingType::NONE)
         {
-            // if black, offset to achieve lower case
             char piece = piecePgn(pieceType);
-            if (color == Color::BLACK)
+            // // if black, offset to achieve lower case
+            // if (color == Color::BLACK)
+            // {
+            //     piece += 32;
+            // }
+            // Pawn is default, so doesn't get added
+            if (piece != 'P')
             {
-                piece += 32;
+                pgn << piece;
             }
-            pgn << piece;
             pgn << toAlgebraic(fromSquare);
             if (isCapture)
             {

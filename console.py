@@ -59,11 +59,9 @@ def make_human_turn(current_position, current_player):
 # result (0 for continue, -1 for quit), current_position, current_player, full_move_counter, halfmove_clock, pgn
 def game_loop(current_position, current_player, human_color, full_move_counter, halfmove_clock, pgn):
     print("\n====================")
-    print(f"Move {full_move_counter}")
-    print(f"{current_player.to_string()} to move")
+    print(f"Move {full_move_counter}, {current_player.to_string()} to move")
 
     status = cd.check_endgame_conditions(current_position, current_player)
-    print(f"Endgame status: {status}")
     if status == 1:
         print("CHECK!")
     elif status == 2:
