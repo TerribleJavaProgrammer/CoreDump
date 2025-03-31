@@ -104,16 +104,6 @@ def game_loop(current_position, current_player, human_color, full_move_counter, 
     else:
         # AI's turn
         print("AI is thinking...")
-
-        # legal_moves = cd.generate_moves(current_position, current_player)
-        # print(f"Legal moves: {len(legal_moves)}")
-        # # Print all the legal moves in algebraic notation
-        # for m in legal_moves:
-        #     temp_pos = Position(current_position)
-        #     temp_pos.make_move(m)
-        #     evaluation = cd.evaluate_position(temp_pos, current_player)
-        #     print(f"{Move.to_algebraic(m.from_square)} {Move.to_algebraic(m.to_square)} scores {evaluation}")
-
         move = cd.find_best_move(current_position, current_player, MAX_DEPTH, MAX_TIME, DEBUG)
         # Convert move to algebraic notation for display
         move_str = f"{Move.to_algebraic(move.from_square)} {Move.to_algebraic(move.to_square)}"
