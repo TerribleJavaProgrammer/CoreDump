@@ -1,6 +1,6 @@
 import tkinter as tk
 import build.core_dump_py as cd
-from build.core_dump_py import Color, PieceType, Move, Position
+from build.core_dump_py import Color, Move, Position
 
 cd.engine_init()
 
@@ -89,6 +89,10 @@ class ChessBoard:
             print("Illegal move!")
             return False
 
+        self.make_move(move)
+        return True
+    
+    def make_move(self, move: Move):
         # Make the move
         self.position.make_move(move)
         self.pgn += move.get_pgn() + ' '
@@ -98,12 +102,24 @@ class ChessBoard:
         if self.current_player == Color.WHITE:
             self.full_move_counter += 1
             self.pgn += str(self.full_move_counter) + '. '
+        
+        self.check_for_endgame()
 
-        return True
     
+    def check_for_endgame(self):
+            status = cd.check_endgame_conditions(self.position, self.current_player)
+            if status == 1:
+                print(f"{self.current_player.to_string()} in CHECK!")
+            elif status == 2:
+                print(f"CHECKMATE! {cd.invert_color(self.current_player).to_string()} wins.")
+            elif status == 3:
+                print("STALEMATE! Nobody wins")
+            
+            return status
+
     def yield_to_engine(self):
         print("AI is thinking...")
-        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, True)
+        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, False)
         print(debugOut)
         # Convert move to algebraic notation for display
         self.try_move_piece(move.from_square, move.to_square)
