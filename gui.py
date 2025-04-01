@@ -39,7 +39,6 @@ class ChessBoard:
         self.root.title("Chess Board")
         self.board_frame = tk.Frame(self.root)
         self.board_frame.pack()
-        self.board_size = 8
         self.squares = {}
         self.selected_square = None
         self.position = Position()
@@ -52,15 +51,16 @@ class ChessBoard:
         self.update_board()
 
     def create_board(self):
-        for row in range(self.board_size):
-            for col in range(self.board_size):
+        for row in range(8):
+            for col in range(8):
                 color = "white" if (row + col) % 2 == 0 else "gray"
                 square = tk.Label(
                     self.board_frame,
                     bg=color,
-                    width=4,
-                    height=2,
+                    width=3,
+                    height=1,
                     relief="solid",
+                    font=("TkDefaultFont", 48),
                 )
                 square.grid(row=row, column=col)
                 square.bind("<Button-1>", lambda e, r=row, c=col: self.on_square_click(r, c))
