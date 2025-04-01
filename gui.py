@@ -46,7 +46,7 @@ class ChessBoard:
         self.human_color = Color.WHITE
         self.full_move_counter = 1
         self.halfmove_clock = 0
-        self.pgn = ""
+        self.pgn = "1. "
         self.create_board()
         self.update_board()
 
@@ -91,11 +91,13 @@ class ChessBoard:
 
         # Make the move
         self.position.make_move(move)
+        self.pgn += move.get_pgn() + ' '
 
         # Update game state
         self.current_player = Color.BLACK if self.current_player == Color.WHITE else Color.WHITE
         if self.current_player == Color.WHITE:
             self.full_move_counter += 1
+            self.pgn += str(self.full_move_counter) + '. '
 
         return True
     
@@ -123,9 +125,8 @@ class ChessBoard:
         """
         Updates the board by fetching the current state and highlighting the selected square.
         """
-        # Fetch the current FEN position
-        fen = self.get_fen()
-        print(fen)
+        print(self.pgn)
+        print(self.get_fen())
 
         # Reset square colors
         for (row, col), square in self.squares.items():
