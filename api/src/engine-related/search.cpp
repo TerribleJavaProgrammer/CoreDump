@@ -35,12 +35,12 @@ namespace coredump
             return (isInCheck(pos, color) ? -KING_VALUE : 0);
 
         // // **Null Move Pruning** (Skip losing positions)
-        // if (depth >= 3 && !isInCheck(pos, color))
-        // {
-        //     int score = -negamax(pos, depth - 3, -beta, -beta + 1, invertColor(color), ply + 1, startTime, timeLimit, nodeCount, leafNodeCount);
-        //     if (score >= beta)
-        //         return beta; // Beta cutoff (opponent is winning)
-        // }
+        if (depth >= 3 && !isInCheck(pos, color))
+        {
+            int score = -negamax(pos, depth - 3, -beta, -beta + 1, invertColor(color), ply + 1, startTime, timeLimit, nodeCount, leafNodeCount);
+            if (score >= beta)
+                return beta; // Beta cutoff (opponent is winning)
+        }
 
         int bestScore = -INT_MAX;
         Move bestMove;
@@ -77,12 +77,12 @@ namespace coredump
             if (score >= beta)
             {
                 // **Beta Cutoff: Store killer move & history heuristic**
-                if (!move.isCapture)
-                {
-                    // SEG FAULT
-                    // storeKillerMove(move, ply);
-                    // storeHistoryHeuristic(move, depth, color);
-                }
+                //if (!move.isCapture)
+                //{
+                //    // SEG FAULT
+                //    storeKillerMove(move, ply);
+                //    storeHistoryHeuristic(move, depth, color);
+                //}
                 return beta; // Prune
             }
 
