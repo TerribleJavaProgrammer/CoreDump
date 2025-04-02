@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import build.core_dump_py as cd
 from build.core_dump_py import Color, Move, Position
 
@@ -13,25 +14,13 @@ MAX_DEPTH = 3
 MAX_TIME = 5
 
 def square_to_index(rc: tuple[int, int]):
-    """
-    Args:
-        row (int): Row number (0-7, from top to bottom)
-        col (int): Column number (0-7, from left to right)
-    
-    Returns:
-        int: Index from 0 to 63
-    """
     return (7 - rc[0]) * 8 + rc[1]
 
 def index_to_square(index: int):
-    """
-    Args:
-        index (int): Board index (0-63)
-    
-    Returns:
-        tuple: (row, col) coordinates (0-7)
-    """
     return (7 - (index // 8), index % 8)
+
+def get_square_color(row: int, col: int):
+    return "white" if (row + col) % 2 == 0 else "gray"
 
 class ChessBoard:
     def __init__(self, root):
@@ -41,6 +30,8 @@ class ChessBoard:
         self.board_frame.pack()
         self.squares = {}
         self.selected_square = None
+        self.game_over = None
+        self.lock_for_engine = False
         self.position = Position()
         self.current_player = Color.WHITE
         self.human_color = Color.WHITE
@@ -53,7 +44,7 @@ class ChessBoard:
     def create_board(self):
         for row in range(8):
             for col in range(8):
-                color = "white" if (row + col) % 2 == 0 else "gray"
+                color = get_square_color(row, col)
                 square = tk.Label(
                     self.board_frame,
                     bg=color,
@@ -63,39 +54,65 @@ class ChessBoard:
                     font=("TkDefaultFont", 48),
                 )
                 square.grid(row=row, column=col)
-                square.bind("<Button-1>", lambda e, r=row, c=col: self.on_square_click(r, c))
+                square.bind("<Button-1>", lambda e, r=row, c=col: self.on_square_click((r, c)))
                 self.squares[(row, col)] = square
 
-    def on_square_click(self, row: int, col: int):
-        if self.selected_square:
-            success = self.try_move_piece(square_to_index(self.selected_square), square_to_index((row, col)))
+    def on_square_click(self, clicked_square: tuple[int, int]):
+        if self.game_over:
+            return
+        if self.lock_for_engine:
+            return
+
+        if self.selected_square == clicked_square:
+            # clicking twice on a square deselects it
             self.selected_square = None
             self.update_board()
-            if (success):
-                self.yield_to_engine()
-            
+            return
+
+        if self.selected_square:
+            # there is already a selected square, so we try to move from there to clicked square
+            from_square = self.selected_square
+            self.selected_square = None
+            success = self.try_move_piece(square_to_index(from_square), square_to_index(clicked_square))
+            if self.game_over:
+                return
+            if success:
+                # if player successfully moved, then the bot moves
+                self.yield_to_engine()                
+            else:
+                # player attempted illegal move
+                if self.get_moves_from(clicked_square):
+                    # if the newly clicked square has moves from it, select it
+                    self.selected_square = clicked_square
+                else:
+                    self.selected_square = None
+                self.update_board()
+
         else:
-            # Select the clicked square
-            self.selected_square = (row, col)
-            self.update_board()
+            # there is no square already selected
+            moves_from_clicked = self.get_moves_from(clicked_square)
+            if moves_from_clicked:
+                # there are valid moves from the clicked square so we select it
+                self.selected_square = clicked_square
+                self.update_board()
 
     def try_move_piece(self, from_idx: int, to_idx: int):
         # Create a move object
         move = Move(from_idx, to_idx, self.current_player)
 
-        # Check if the move is legal
+        # Check if the move is legal, and copy the new legalized move if it is
         (legal, move) = self.is_legal_move(move)
         if not legal:
-            print("Illegal move!")
             return False
 
         self.make_move(move)
         return True
-    
+
     def make_move(self, move: Move):
         # Make the move
         self.position.make_move(move)
         self.pgn += move.get_pgn() + ' '
+        print(f"{self.current_player.to_string()} plays: {self.get_algebraic_move(move)}")
 
         # Update game state
         self.current_player = Color.BLACK if self.current_player == Color.WHITE else Color.WHITE
@@ -103,52 +120,59 @@ class ChessBoard:
             self.full_move_counter += 1
             self.pgn += str(self.full_move_counter) + '. '
         
+        # print for debugging
+        print(self.pgn)
+        print(self.get_fen())
+
+        self.update_board()
         self.check_for_endgame()
 
-    
     def check_for_endgame(self):
-            status = cd.check_endgame_conditions(self.position, self.current_player)
-            if status == 1:
-                print(f"{self.current_player.to_string()} in CHECK!")
-            elif status == 2:
-                print(f"CHECKMATE! {cd.invert_color(self.current_player).to_string()} wins.")
-            elif status == 3:
-                print("STALEMATE! Nobody wins")
-            
-            return status
+        status = cd.check_endgame_conditions(self.position, self.current_player)
+        if status == 1:
+            print(f"{self.current_player.to_string()} in CHECK!")
+        elif status == 2:
+            winner = cd.invert_color(self.current_player).to_string()
+            self.game_over = f"CHECKMATE! {winner} wins."
+        elif status == 3:
+            self.game_over = "STALEMATE! Nobody wins"
+
+        if self.game_over:
+            print(self.game_over)
+            messagebox.showinfo("Game Over", self.game_over)
 
     def yield_to_engine(self):
-        print("AI is thinking...")
+        self.lock_for_engine = True
+        print("Bot is thinking...")
         move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, False)
         print(debugOut)
-        # Convert move to algebraic notation for display
-        self.try_move_piece(move.from_square, move.to_square)
-        print(f"Computer plays: {Move.to_algebraic(move.from_square)} {Move.to_algebraic(move.to_square)}")
-        self.update_board()
-    
-    def is_legal_move(self, move):
+        self.make_move(move)
+        self.lock_for_engine = False
+
+    def get_algebraic_move(self, move: Move):
+        return f"{Move.to_algebraic(move.from_square)} {Move.to_algebraic(move.to_square)}"
+
+    def is_legal_move(self, move: Move):
         legal_moves = cd.generate_moves(self.position, self.current_player)
         legal_move = next((m for m in legal_moves if m.from_square == move.from_square and m.to_square == move.to_square), None)
-        if (legal_move is None):
+        if legal_move is None:
             return False, None
         return True, legal_move
+    
+    def get_moves_from(self, square: tuple[int, int]):
+        legal_moves = cd.generate_moves(self.position, self.current_player)
+        return [m for m in legal_moves if m.from_square == square_to_index(square)]
 
     def get_fen(self):
         # TODO add castling rights and en-passant target to the fen
         return self.position.get_fen(self.current_player, self.halfmove_clock, self.full_move_counter, "-", "-")
 
     def update_board(self):
-        """
-        Updates the board by fetching the current state and highlighting the selected square.
-        """
-        print(self.pgn)
-        print(self.get_fen())
-
         # Reset square colors
         for (row, col), square in self.squares.items():
-            color = "white" if (row + col) % 2 == 0 else "gray"
+            color = get_square_color(row, col)
             square.config(bg=color)
-        
+
         # set the selected piece's color
         if self.selected_square:
             row, col = self.selected_square
