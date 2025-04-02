@@ -3,4 +3,4 @@ cd build
 make -j$(nproc)
 cd ..
 #./build/core_dump
-python ./gui.py
+python3 ./gui.py
