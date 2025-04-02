@@ -10,8 +10,9 @@ PIECE_SYMBOLS = {
     'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
 }
 
-MAX_DEPTH = 3
+MAX_DEPTH = 4
 MAX_TIME = 5
+HUMAN_COLOR = Color.WHITE
 
 def square_to_index(rc: tuple[int, int]):
     return (7 - rc[0]) * 8 + rc[1]
@@ -34,12 +35,14 @@ class ChessBoard:
         self.lock_for_engine = False
         self.position = Position()
         self.current_player = Color.WHITE
-        self.human_color = Color.WHITE
+        self.human_color = HUMAN_COLOR
         self.full_move_counter = 1
         self.halfmove_clock = 0
         self.pgn = "1. "
         self.create_board()
         self.update_board()
+        if (self.human_color == Color.BLACK):
+            self.yield_to_engine()
 
     def create_board(self):
         for row in range(8):
@@ -144,7 +147,7 @@ class ChessBoard:
     def yield_to_engine(self):
         self.lock_for_engine = True
         print("Bot is thinking...")
-        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, False)
+        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, True)
         print(debugOut)
         self.make_move(move)
         self.lock_for_engine = False
