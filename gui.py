@@ -13,6 +13,10 @@ PIECE_SYMBOLS = {
 MAX_DEPTH = 4
 MAX_TIME = 5
 HUMAN_COLOR = Color.WHITE
+SELECTED_SQUARE_COLOR = "light blue"
+LEGAL_MOVES_SQUARE_COLOR = "light green"
+LIGHT_SQUARE_COLOR = "white"
+DARK_SQUARE_COLOR = "gray"
 
 def square_to_index(rc: tuple[int, int]):
     return (7 - rc[0]) * 8 + rc[1]
@@ -21,7 +25,7 @@ def index_to_square(index: int):
     return (7 - (index // 8), index % 8)
 
 def get_square_color(row: int, col: int):
-    return "white" if (row + col) % 2 == 0 else "gray"
+    return LIGHT_SQUARE_COLOR if (row + col) % 2 == 0 else DARK_SQUARE_COLOR
 
 class ChessBoard:
     def __init__(self, root):
@@ -44,7 +48,7 @@ class ChessBoard:
         if (self.human_color == Color.BLACK):
             self.yield_to_engine()
 
-    def create_board(self):
+    def create_board(self):        
         for row in range(8):
             for col in range(8):
                 color = get_square_color(row, col)
@@ -176,10 +180,15 @@ class ChessBoard:
             color = get_square_color(row, col)
             square.config(bg=color)
 
-        # set the selected piece's color
+        # set the selected square's color
         if self.selected_square:
             row, col = self.selected_square
-            self.squares[(row, col)].config(bg="light green")
+            self.squares[(row, col)].config(bg=SELECTED_SQUARE_COLOR)
+            # set the color of the potential move to squares
+            moves = self.get_moves_from(self.selected_square)
+            for move in moves:
+                row, col = index_to_square(move.to_square)
+                self.squares[(row, col)].config(bg=LEGAL_MOVES_SQUARE_COLOR)
 
         # Populate squares with pieces
         for idx in range(64):
@@ -189,6 +198,7 @@ class ChessBoard:
                 self.squares[(row, col)].config(text=PIECE_SYMBOLS[piece_char])
             else:
                 self.squares[(row, col)].config(text='')
+            
 
 def main():
     root = tk.Tk()
