@@ -10,9 +10,10 @@ PIECE_SYMBOLS = {
     'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
 }
 
-MAX_DEPTH = 4
-MAX_TIME = 5
-HUMAN_COLOR = Color.WHITE
+DEFAULT_MAX_DEPTH = 5
+DEFAULT_MAX_TIME = 5.0
+STARTING_COLOR = Color.WHITE
+MAX_MOVES = 200
 SELECTED_SQUARE_COLOR = "light blue"
 LEGAL_MOVES_SQUARE_COLOR = "light green"
 LIGHT_SQUARE_COLOR = "white"
@@ -28,7 +29,7 @@ def get_square_color(row: int, col: int):
     return LIGHT_SQUARE_COLOR if (row + col) % 2 == 0 else DARK_SQUARE_COLOR
 
 class ChessBoard:
-    def __init__(self, root):
+    def __init__(self, root, use_human: bool, human_color: Color, max_depth: int, max_time: float):
         self.root = root
         self.root.title("Chess Board")
         self.board_frame = tk.Frame(self.root)
@@ -38,14 +39,19 @@ class ChessBoard:
         self.game_over = None
         self.lock_for_engine = False
         self.position = Position()
-        self.current_player = Color.WHITE
-        self.human_color = HUMAN_COLOR
+        self.current_player = STARTING_COLOR
+        self.human_color = human_color
+        self.max_depth = max_depth
+        self.max_time = max_time
         self.full_move_counter = 1
         self.halfmove_clock = 0
         self.pgn = "1. "
         self.create_board()
         self.update_board()
-        if (self.human_color == Color.BLACK):
+        if not use_human:
+            self.bot_loop()
+            return
+        if self.human_color != STARTING_COLOR:
             self.yield_to_engine()
 
     def create_board(self):        
@@ -63,6 +69,10 @@ class ChessBoard:
                 square.grid(row=row, column=col)
                 square.bind("<Button-1>", lambda e, r=row, c=col: self.on_square_click((r, c)))
                 self.squares[(row, col)] = square
+
+    def bot_loop(self):
+        while not self.game_over and self.full_move_counter < MAX_MOVES:
+            self.yield_to_engine()
 
     def on_square_click(self, clicked_square: tuple[int, int]):
         if self.game_over:
@@ -151,7 +161,7 @@ class ChessBoard:
     def yield_to_engine(self):
         self.lock_for_engine = True
         print("Bot is thinking...")
-        move, debugOut = cd.find_best_move(self.position, self.current_player, MAX_DEPTH, MAX_TIME, True)
+        move, debugOut = cd.find_best_move(self.position, self.current_player, self.max_depth, self.max_time, True)
         print(debugOut)
         self.make_move(move)
         self.lock_for_engine = False
@@ -200,9 +210,60 @@ class ChessBoard:
                 self.squares[(row, col)].config(text='')
             
 
+def determine_human_color():
+    # Let player choose color
+    human_color = Color.WHITE
+    choice = input("Play as (w)hite or (b)lack? ").strip().lower()
+    if choice == 'b':
+        human_color = Color.BLACK
+
+    # Print out who plays who
+    print()
+    print(f"You are playing as {(human_color.to_string())}")
+    print(f"AI is playing as {(cd.invert_color(human_color).to_string())}")
+    if human_color == Color.WHITE:
+        print("You play first")
+    else:
+        print("AI plays first")
+    return human_color
+
+def determine_use_human():
+    choice = input("1) Play against the bot\n2) Have the bot play itself\nEnter choice, or leave blank to play against the bot: ")
+    if choice == '':
+        return True
+    try:
+        return int(choice) == 1
+    except ValueError:
+        return True
+
+def determine_max_depth():
+    choice = input(f'Enter a max depth, or leave blank for default depth of {DEFAULT_MAX_DEPTH}: ')
+    if choice == '':
+        return DEFAULT_MAX_DEPTH
+    try:
+        return int(choice)
+    except ValueError:
+        return DEFAULT_MAX_DEPTH
+    
+def determine_max_time():
+    choice = input(f'Enter a max time in seconds, or leave blank for default time of {DEFAULT_MAX_TIME}: ')
+    if choice == '':
+        return DEFAULT_MAX_TIME
+    try:
+        return int(choice)
+    except ValueError:
+        return DEFAULT_MAX_TIME
+
 def main():
+    print("\n========== STARTING ==========\n")
+    max_depth = determine_max_depth()
+    max_time = determine_max_time()
+    use_human = determine_use_human()
+    human_color = Color.WHITE
+    if (use_human):
+        human_color = determine_human_color()
     root = tk.Tk()
-    chess_board = ChessBoard(root)
+    chess_board = ChessBoard(root, use_human, human_color, max_depth, max_time)
     root.mainloop()
 
 if __name__ == "__main__":
