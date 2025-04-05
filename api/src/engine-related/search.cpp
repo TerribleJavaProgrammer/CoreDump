@@ -5,7 +5,8 @@ namespace coredump
 
     // New algorithm: Minimax w/ AB pruning. Used for debugging and testing (not to mention the fact that it doesn't sound like a slur.)
     // Added 4/5/25
-    int minimax(const Position &pos, int depth, int alpha, int beta, Color maximizingColor, Color currentColor) {
+    int minimax(std::chrono::high_resolution_clock::time_point startTime, double timeLimit,
+        const Position &pos, int depth, int alpha, int beta, Color maximizingColor, Color currentColor) {
         bool noMovesMax = generateMoves(pos, maximizingColor).size() == 0;
         bool noMovesMin = generateMoves(pos, maximizingColor == Color::WHITE ? Color::BLACK : Color::WHITE).size() == 0;
         bool isCheckMax = isInCheck(pos, maximizingColor);
@@ -24,7 +25,12 @@ namespace coredump
             std::vector<Move> moves = generateMoves(pos, maximizingColor);
             for (const Move &move : moves) {
                 Position tempPos(pos, move);
-                int score = minimax(tempPos, depth - 1, alpha, beta, maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
+                auto elapsedTime = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
+                if (elapsedTime >= timeLimit) {
+                    return std::max(bestScore, evaluatePosition(tempPos, maximizingColor));
+                }
+                int score = minimax(startTime, timeLimit, tempPos, depth - 1, alpha, beta,
+                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
                 bestScore = std::max(bestScore, score);
                 alpha = std::max(alpha, score);
                 if (beta <= alpha) {
@@ -34,10 +40,15 @@ namespace coredump
             return bestScore;
         } else {
             int bestScore = INT_MAX;
-            std::vector<Move> moves = generateMoves(pos, maximizingColor);
+            std::vector<Move> moves = generateMoves(pos, currentColor);
             for (const Move &move : moves) {
                 Position tempPos(pos, move);
-                int score = minimax(tempPos, depth - 1, alpha, beta, maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
+                auto elapsedTime = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
+                if (elapsedTime >= timeLimit) {
+                    return std::min(bestScore, evaluatePosition(tempPos, currentColor));
+                }
+                int score = minimax(startTime, timeLimit, tempPos, depth - 1, alpha, beta,
+                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
                 bestScore = std::min(bestScore, score);
                 beta = std::min(beta, score);
                 if (beta <= alpha) {

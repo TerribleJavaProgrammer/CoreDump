@@ -82,18 +82,22 @@ namespace coredump
                     if (index >= rootMoves.size()) break;
 
                     localPosition.makeMove(rootMoves[index]);
-                    int score = -negamax(
-                        localPosition,
-                        depth,
-                        -KING_VALUE * 2,
-                        KING_VALUE * 2,
-                        (invertColor(color)),
-                        0,
-                        startTime,
-                        timeLimitSeconds,
-                        nodeCount,
-                        leafNodeCount
-                    );
+                    //int score = -negamax(
+                    //    localPosition,
+                    //    depth,
+                    //    -KING_VALUE * 2,
+                    //    KING_VALUE * 2,
+                    //    (invertColor(color)),
+                    //    0,
+                    //    startTime,
+                    //    timeLimitSeconds,
+                    //    nodeCount,
+                    //    leafNodeCount
+                    //);
+
+                    int score = minimax(startTime, timeLimitSeconds,
+                        localPosition, depth, -KING_VALUE * 2, KING_VALUE * 2, color, (invertColor(color)));
+
                     localPosition.undoMove(rootMoves[index]);
                     leafNodeCount++;
 
