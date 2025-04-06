@@ -127,7 +127,7 @@ namespace coredump
             }
             const Color otherColor = invertColor(color);
             // Recursive call to this function but of the other color.
-            int score = -negamax(pos, searchDepth, -beta, -alpha, otherColor, ply + 1, startTime, timeLimit, nodeCount, leafNodeCount);
+            int score = -negamax(tempPos, searchDepth, -beta, -alpha, otherColor, ply + 1, startTime, timeLimit, nodeCount, leafNodeCount);
             // One by one, we pop out of the recursive calls and undo each move back up the tree
             tempPos.undoMove(move);
 
