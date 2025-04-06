@@ -6,55 +6,89 @@ namespace coredump
     // New algorithm: Minimax w/ AB pruning. Used for debugging and testing (not to mention the fact that it doesn't sound like a slur.)
     // Added 4/5/25
     int minimax(std::chrono::high_resolution_clock::time_point startTime, double timeLimit,
-        const Position &pos, int depth, int alpha, int beta, Color maximizingColor, Color currentColor) {
+        const Position &pos, int depth, int alpha, int beta, Color maximizingColor, Color currentColor, int ply) {
+        // Terminal node flags
         bool noMovesMax = generateMoves(pos, maximizingColor).size() == 0;
         bool noMovesMin = generateMoves(pos, maximizingColor == Color::WHITE ? Color::BLACK : Color::WHITE).size() == 0;
         bool isCheckMax = isInCheck(pos, maximizingColor);
         bool isCheckMin = isInCheck(pos, maximizingColor == Color::WHITE ? Color::BLACK : Color::WHITE);
-
+        
+        // Derived terminal node flags
         bool maxLoss = noMovesMax && isCheckMax;
         bool minLoss = noMovesMin && isCheckMin;
         bool stalemate = noMovesMax && noMovesMin && !isCheckMax && !isCheckMin;
 
-        if (depth == 0 || maxLoss || minLoss || stalemate) {
-            return evaluatePosition(pos, maximizingColor);
+        // Base case: Quiescence Search at Depth 0
+        if (depth == 0) {
+            return quiescenceSearch(pos, alpha, beta, maximizingColor, ply); // Depth reached; return evaluation
         }
 
-        if (maximizingColor == currentColor) {
+        // Base case: Checkmate / Stalemate Detection
+        if (maxLoss) {
+            return -KING_VALUE; // Punish conceding checkmate
+        }
+
+        if (minLoss) {
+            return KING_VALUE; // Reward checkmate
+        }
+
+        if (stalemate) {
+            return 0; // Stalemate is a draw; do not reward or punish
+        }
+
+        if (maximizingColor == currentColor) { // Maximize
             int bestScore = -INT_MAX;
             std::vector<Move> moves = generateMoves(pos, maximizingColor);
+            sortMoves(moves, pos, ply, currentColor); // Best move ordering
+
+            //Search
             for (const Move &move : moves) {
                 Position tempPos(pos, move);
+
                 auto elapsedTime = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
                 if (elapsedTime >= timeLimit) {
                     return std::max(bestScore, evaluatePosition(tempPos, maximizingColor));
                 }
+
                 int score = minimax(startTime, timeLimit, tempPos, depth - 1, alpha, beta,
-                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
+                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE, ply + 1);
+
                 bestScore = std::max(bestScore, score);
+
                 alpha = std::max(alpha, score);
+
                 if (beta <= alpha) {
                     break; // Beta cutoff
                 }
             }
+
             return bestScore;
-        } else {
+        } else { // Minimize
             int bestScore = INT_MAX;
             std::vector<Move> moves = generateMoves(pos, currentColor);
+            sortMoves(moves, pos, ply, currentColor); // Best move ordering
+
+            // Search
             for (const Move &move : moves) {
                 Position tempPos(pos, move);
+
                 auto elapsedTime = std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
                 if (elapsedTime >= timeLimit) {
                     return std::min(bestScore, evaluatePosition(tempPos, currentColor));
                 }
+
                 int score = minimax(startTime, timeLimit, tempPos, depth - 1, alpha, beta,
-                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE);
+                    maximizingColor, currentColor == Color::WHITE ? Color::BLACK : Color::WHITE, ply + 1);
+
                 bestScore = std::min(bestScore, score);
+
                 beta = std::min(beta, score);
+
                 if (beta <= alpha) {
                     break; // Alpha cutoff
                 }
             }
+
             return bestScore;
         }
     }
@@ -81,7 +115,7 @@ namespace coredump
         // Base Case: Quiescence Search at Depth 0
         if (depth == 0)
         {
-            return quiescenceSearch(pos, alpha, beta, color, ply, leafNodeCount);
+            return quiescenceSearch(pos, alpha, beta, color, ply);
         }
 
         std::vector<Move> moves = generateMoves(pos, color);
@@ -161,7 +195,7 @@ namespace coredump
 
     // Search all capture moves that stem from this move
     // "Please mom, just one more search! It'll only take a few milliseconds!"
-    int quiescenceSearch(const Position &pos, int alpha, int beta, Color color, int ply, std::atomic<uint64_t> &leafNodeCount)
+    int quiescenceSearch(const Position &pos, int alpha, int beta, Color color, int ply)
     {
         int standPat = evaluatePosition(pos, color);
         if (standPat >= beta)
@@ -179,8 +213,7 @@ namespace coredump
                 continue;
 
             const Position tempPos(pos, move);
-            leafNodeCount++;
-            int score = -quiescenceSearch(tempPos, -beta, -alpha, invertColor(color), ply + 1, leafNodeCount);
+            int score = -quiescenceSearch(tempPos, -beta, -alpha, invertColor(color), ply + 1);
 
             if (score >= beta)
                 return beta; // Beta cutoff

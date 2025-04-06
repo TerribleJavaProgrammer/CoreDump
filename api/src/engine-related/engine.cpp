@@ -96,7 +96,7 @@ namespace coredump
                     //);
 
                     int score = minimax(startTime, timeLimitSeconds,
-                        localPosition, depth, -KING_VALUE * 2, KING_VALUE * 2, color, (invertColor(color)));
+                        localPosition, depth, -KING_VALUE * 2, KING_VALUE * 2, color, (invertColor(color)), 0);
 
                     localPosition.undoMove(rootMoves[index]);
                     leafNodeCount++;
