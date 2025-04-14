@@ -11,8 +11,6 @@
 #include "engine-related/prioritization.h"
 #include "extraHeuristics/killerMoves.h"
 
-// extern std::atomic<uint64_t> nodeCount;
-// extern std::atomic<uint64_t> leafNodeCount;
 namespace coredump
 {
     int minimax(std::chrono::high_resolution_clock::time_point startTime, double timeLimit,
